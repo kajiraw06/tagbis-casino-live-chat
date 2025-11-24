@@ -181,18 +181,21 @@ body::before {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    position: relative;
+    position: absolute;
     z-index: 1;
-    margin-left: auto;
-    margin-right: auto;
-    left: 0;
-    right: 0;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
 
 @media (min-width: 768px) {
     .chat-container {
         height: 600px;
         border-radius: 12px;
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
     }
 }
 
