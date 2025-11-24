@@ -177,12 +177,14 @@ body::before {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 1;
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 @media (min-width: 768px) {
@@ -396,12 +398,16 @@ body::before {
     display: flex;
     gap: 8px;
     flex-shrink: 0;
+    position: relative;
+    min-height: 64px;
+    align-items: center;
 }
 
 @media (min-width: 768px) {
     .chat-input-container {
         padding: 16px;
         gap: 10px;
+        min-height: auto;
     }
 }
 
@@ -410,16 +416,22 @@ body::before {
     background: #0f212e;
     border: 1px solid #2f4553;
     border-radius: 6px;
-    padding: 10px 12px;
+    padding: 12px;
     color: #ffffff;
-    font-size: clamp(13px, 3vw, 14px);
+    font-size: 16px;
     outline: none;
     transition: border-color 0.2s;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+    touch-action: manipulation;
 }
 
 @media (min-width: 768px) {
     #messageInput {
         padding: 10px 14px;
+        font-size: 14px;
     }
 }
 
@@ -464,17 +476,20 @@ body::before {
 
 .chat-footer {
     padding: 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
     background: #1a2c38;
     border-top: 1px solid #2f4553;
     flex-shrink: 0;
-    min-height: 60px;
+    min-height: 64px;
     display: flex;
     align-items: center;
+    position: relative;
 }
 
 @media (min-width: 768px) {
     .chat-footer {
         padding: 12px 16px;
+        padding-bottom: 12px;
         min-height: auto;
     }
 }
@@ -484,13 +499,16 @@ body::before {
     background: #0f212e;
     border: 1px solid #2f4553;
     border-radius: 6px;
-    padding: 12px;
+    padding: 14px 12px;
     color: #ffffff;
-    font-size: clamp(14px, 3.5vw, 14px);
+    font-size: 16px;
     outline: none;
     transition: border-color 0.2s;
     -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
+    box-sizing: border-box;
+    touch-action: manipulation;
 }
 
 #usernameInput:focus {
