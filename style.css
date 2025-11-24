@@ -50,30 +50,32 @@ body::before {
 
 .casino-title-bg {
     position: fixed;
-    top: 8%;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
     z-index: 0;
     pointer-events: none;
-    width: 90%;
-    text-align: center;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .casino-title {
-    font-size: clamp(32px, 8vw, 72px);
-    font-weight: 800;
-    letter-spacing: clamp(3px, 1vw, 8px);
+    font-size: clamp(80px, 15vw, 150px);
+    font-weight: 900;
+    letter-spacing: clamp(8px, 2vw, 20px);
     background: linear-gradient(135deg, #00e701 0%, #00c853 50%, #00e701 100%);
     background-size: 200% 200%;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: gradientText 8s ease infinite, floatTitle 6s ease-in-out infinite;
-    filter: drop-shadow(0 0 25px rgba(0, 231, 1, 0.4));
-    opacity: 0.3;
+    animation: gradientText 8s ease infinite, scrollText 20s linear infinite;
+    filter: drop-shadow(0 0 40px rgba(0, 231, 1, 0.6));
+    opacity: 0.25;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     text-transform: uppercase;
-    font-weight: 700;
+    font-weight: 900;
+    display: inline-block;
 }
 
 @keyframes gradientText {
@@ -81,11 +83,9 @@ body::before {
     50% { background-position: 100% 50%; }
 }
 
-
-
-@keyframes floatTitle {
-    0%, 100% { transform: translateY(0px) scale(1); }
-    50% { transform: translateY(-15px) scale(1.05); }
+@keyframes scrollText {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
 }
 
 .slots-background {
