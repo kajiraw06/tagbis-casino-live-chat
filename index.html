@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="casino-title-bg">
+        <h1 class="casino-title">TAGBIS CASINO</h1>
+    </div>
+    
+    <div class="slots-background">
+        <div class="slot-machine">
+            <div class="slot-reel">🍒</div>
+            <div class="slot-reel">💎</div>
+            <div class="slot-reel">🍋</div>
+        </div>
+        <div class="slot-machine">
+            <div class="slot-reel">⭐</div>
+            <div class="slot-reel">7️⃣</div>
+            <div class="slot-reel">🍇</div>
+        </div>
+        <div class="slot-machine">
+            <div class="slot-reel">💰</div>
+            <div class="slot-reel">🍊</div>
+            <div class="slot-reel">🔔</div>
+        </div>
+        <div class="slot-machine">
+            <div class="slot-reel">🍉</div>
+            <div class="slot-reel">💎</div>
+            <div class="slot-reel">🍒</div>
+        </div>
+    </div>
+    
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Live Chat</h2>
+            <div class="online-count">
+                <span class="status-dot"></span>
+                <span id="onlineCount">1 online</span>
+            </div>
+        </div>
+        
+        <div class="chat-channels">
+            <button class="channel-btn active" data-channel="global">🌍 Global</button>
+            <button class="channel-btn" data-channel="filipino">🇵🇭 Filipino</button>
+            <button class="channel-btn" data-channel="brazilian">🇧🇷 Brazilian</button>
+            <button class="channel-btn" data-channel="vip">💎 VIP</button>
+            <button class="channel-btn" data-channel="sports">⚽ Sports</button>
+            <button class="channel-btn" data-channel="offtopic">💬 Off-topic</button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will appear here -->
+        </div>
+        
+        <div class="chat-input-container">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Type a message..." 
+                maxlength="500"
+            >
+            <button id="sendButton">Send</button>
+        </div>
+        
+        <div class="chat-footer">
+            <input 
+                type="text" 
+                id="usernameInput" 
+                placeholder="Enter username..." 
+                maxlength="20"
+            >
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
