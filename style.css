@@ -467,16 +467,19 @@ body::before {
 }
 
 .chat-input-container {
-    padding: 12px;
+    padding: 8px;
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
     background: #213743;
     border-top: 1px solid #2f4553;
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-shrink: 0;
     position: relative;
     min-height: 64px;
     align-items: center;
     overflow: visible;
+    box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
@@ -487,12 +490,33 @@ body::before {
     }
 }
 
+/* Extra small mobile devices */
+@media (max-width: 375px) {
+    .chat-input-container {
+        padding: 6px;
+        gap: 4px;
+    }
+    
+    #sendButton {
+        min-width: 60px;
+        padding: 0 12px;
+        font-size: 14px;
+    }
+    
+    .emoji-btn {
+        width: 40px;
+        font-size: 18px;
+        padding: 6px;
+    }
+}
+
 #messageInput {
     flex: 1;
+    min-width: 0;
     background: #0f212e;
     border: 1px solid #2f4553;
     border-radius: 8px;
-    padding: 14px 12px;
+    padding: 12px 10px;
     color: #ffffff;
     font-size: 16px;
     outline: none;
@@ -502,7 +526,7 @@ body::before {
     appearance: none;
     box-sizing: border-box;
     touch-action: manipulation;
-    min-height: 48px;
+    height: 48px;
     resize: none;
 }
 
@@ -510,7 +534,7 @@ body::before {
     #messageInput {
         padding: 10px 14px;
         font-size: 14px;
-        min-height: auto;
+        height: auto;
     }
 }
 
@@ -527,23 +551,24 @@ body::before {
     color: #0f212e;
     border: none;
     border-radius: 8px;
-    padding: 14px 20px;
+    padding: 0 16px;
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
     flex-shrink: 0;
     white-space: nowrap;
-    min-width: 80px;
-    min-height: 48px;
+    min-width: 70px;
+    height: 48px;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
     #sendButton {
         padding: 10px 20px;
-        min-height: auto;
+        height: auto;
         min-width: auto;
         font-size: 14px;
     }
@@ -632,18 +657,19 @@ body::before {
 .emoji-btn {
     background: transparent;
     border: none;
-    font-size: 22px;
+    font-size: 20px;
     cursor: pointer;
-    padding: 12px;
+    padding: 8px;
     transition: transform 0.2s;
     flex-shrink: 0;
-    min-width: 48px;
-    min-height: 48px;
+    width: 44px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
     -webkit-tap-highlight-color: transparent;
     border-radius: 8px;
+    box-sizing: border-box;
 }
 
 .emoji-btn:active {
@@ -654,8 +680,8 @@ body::before {
     .emoji-btn {
         font-size: 20px;
         padding: 8px;
-        min-width: auto;
-        min-height: auto;
+        width: auto;
+        height: auto;
     }
     
     .emoji-btn:hover {
