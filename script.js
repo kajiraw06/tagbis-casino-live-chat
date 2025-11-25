@@ -686,56 +686,75 @@ function addPrivateMessage(data) {
 function handleFileUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     if (!username) {
         alert('Please enter a username first!');
         usernameInput.focus();
         fileInput.value = '';
         return;
     }
-    
-    // Check file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
+
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    // Allow larger raw file, but compress images before sending to stay under 5MB
+    const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+    const MAX_DIMENSION = 1280; // max width/height for mobile uploads
+    const JPEG_QUALITY = 0.7; // compression quality
+
+    const reader = new FileReader();
+
+    reader.onerror = (error) => {
+        console.error('File reading error:', error);
+        alert('Error reading file. Please try again.');
         fileInput.value = '';
-        return;
-    }
-    
-    // For images and videos, show preview
-    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-        const reader = new FileReader();
-        
-        reader.onerror = (error) => {
-            console.error('File reading error:', error);
-            alert('Error reading file. Please try again.');
-            fileInput.value = '';
-        };
-        
-        reader.onload = (event) => {
-            try {
-                const fileData = event.target.result;
-                const fileType = file.type.startsWith('image/') ? '📷' : '🎥';
-                
-                socket.emit('sendMessage', {
-                    username: username,
-                    text: `${fileType} Shared ${file.type.startsWith('image/') ? 'an image' : 'a video'}: ${file.name}`,
-                    channel: currentChannel,
-                    image: fileData,
-                    fileName: file.name,
-                    fileType: file.type
-                });
-                
-                fileInput.value = '';
-            } catch (error) {
-                console.error('Error sending file:', error);
-                alert('Error uploading file. Please try again.');
-                fileInput.value = '';
+    };
+
+    reader.onload = async (event) => {
+        try {
+            const originalDataUrl = event.target.result;
+
+            let payloadDataUrl = originalDataUrl;
+            let payloadType = file.type;
+
+            if (isImage) {
+                // Compress and resize image on mobile to avoid oversized payloads
+                payloadDataUrl = await compressImage(originalDataUrl, MAX_DIMENSION, JPEG_QUALITY);
+                payloadType = 'image/jpeg';
             }
-        };
-        
+
+            // Final size check
+            const approxSize = Math.ceil((payloadDataUrl.length * 3) / 4); // base64 size approximation
+            if (approxSize > MAX_SIZE_BYTES) {
+                alert('Image is too large even after compression. Please choose a smaller image.');
+                fileInput.value = '';
+                return;
+            }
+
+            const fileTypeIcon = isImage ? '📷' : (isVideo ? '🎥' : '📎');
+
+            socket.emit('sendMessage', {
+                username: username,
+                text: `${fileTypeIcon} Shared ${isImage ? 'an image' : isVideo ? 'a video' : 'a file'}: ${file.name}`,
+                channel: currentChannel,
+                image: isImage || isVideo ? payloadDataUrl : undefined,
+                fileName: file.name,
+                fileType: payloadType,
+                fileSize: formatFileSize(approxSize)
+            });
+
+            fileInput.value = '';
+        } catch (err) {
+            console.error('Error preparing file:', err);
+            alert('Error uploading file. Please try again.');
+            fileInput.value = '';
+        }
+    };
+
+    // Read as Data URL for images/videos; other files send metadata only
+    if (isImage || isVideo) {
         reader.readAsDataURL(file);
     } else {
-        // For other files, just send file info
         socket.emit('sendMessage', {
             username: username,
             text: `📎 Shared a file: ${file.name}`,
@@ -746,6 +765,46 @@ function handleFileUpload(e) {
         });
         fileInput.value = '';
     }
+}
+
+async function compressImage(dataUrl, maxDim, quality) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                let { width, height } = img;
+
+                // Scale down respecting aspect ratio
+                if (width > height && width > maxDim) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                } else if (height > width && height > maxDim) {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                } else if (width === height && width > maxDim) {
+                    width = maxDim;
+                    height = maxDim;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+
+                // Improve downscale quality
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const compressed = canvas.toDataURL('image/jpeg', quality);
+                resolve(compressed);
+            } catch (err) {
+                reject(err);
+            }
+        };
+        img.onerror = reject;
+        img.src = dataUrl;
+    });
 }
 
 function formatFileSize(bytes) {
