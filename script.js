@@ -480,9 +480,8 @@ function showReactionPicker(messageId, buttonElement) {
     
     picker.appendChild(grid);
     
-    // Position the picker
-    const messageEl = buttonElement.closest('.message');
-    messageEl.appendChild(picker);
+    // Position the picker at the bottom of the screen
+    document.body.appendChild(picker);
     
     // Search functionality
     searchInput.addEventListener('input', (e) => {
