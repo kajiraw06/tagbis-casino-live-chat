@@ -33,6 +33,7 @@ const themeToggle = document.getElementById('themeToggle');
 const toggleSidebar = document.getElementById('toggleSidebar');
 const userSidebar = document.getElementById('userSidebar');
 const closeSidebar = document.getElementById('closeSidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 const userList = document.getElementById('userList');
 const fileButton = document.getElementById('fileButton');
 const fileInput = document.getElementById('fileInput');
@@ -165,8 +166,20 @@ function init() {
     }
     
     // User sidebar
-    toggleSidebar.addEventListener('click', () => userSidebar.classList.toggle('open'));
-    closeSidebar.addEventListener('click', () => userSidebar.classList.remove('open'));
+    toggleSidebar.addEventListener('click', () => {
+        userSidebar.classList.toggle('open');
+        sidebarBackdrop.classList.toggle('active');
+    });
+    
+    closeSidebar.addEventListener('click', () => {
+        userSidebar.classList.remove('open');
+        sidebarBackdrop.classList.remove('active');
+    });
+    
+    sidebarBackdrop.addEventListener('click', () => {
+        userSidebar.classList.remove('open');
+        sidebarBackdrop.classList.remove('active');
+    });
     
     // File upload
     fileButton.addEventListener('click', () => fileInput.click());
