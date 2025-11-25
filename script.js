@@ -779,3 +779,72 @@ socket.on('reactionUpdated', (data) => {
 // Initialize the app
 init();
 animateSlots();
+
+// Mobile-specific improvements
+if ('ontouchstart' in window) {
+    // Prevent double-tap zoom on buttons
+    document.querySelectorAll('button, .action-btn, .emoji-btn, .icon-btn').forEach(btn => {
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            btn.click();
+        }, { passive: false });
+    });
+    
+    // Handle mobile keyboard visibility
+    let originalHeight = window.innerHeight;
+    window.addEventListener('resize', () => {
+        const currentHeight = window.innerHeight;
+        const container = document.querySelector('.chat-container');
+        
+        // Keyboard opened (height decreased significantly)
+        if (currentHeight < originalHeight * 0.75) {
+            container.style.height = `${currentHeight}px`;
+        } else {
+            // Keyboard closed
+            container.style.height = '100dvh';
+            originalHeight = currentHeight;
+        }
+    });
+    
+    // Smooth scroll when keyboard opens
+    messageInput.addEventListener('focus', () => {
+        setTimeout(() => {
+            messageInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 300);
+    });
+    
+    usernameInput.addEventListener('focus', () => {
+        setTimeout(() => {
+            usernameInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 300);
+    });
+    
+    // Improve touch scrolling in messages area
+    let isScrolling;
+    chatMessages.addEventListener('touchstart', () => {
+        clearTimeout(isScrolling);
+    });
+    
+    chatMessages.addEventListener('touchend', () => {
+        isScrolling = setTimeout(() => {
+            // Add momentum to scroll
+            chatMessages.style.webkitOverflowScrolling = 'touch';
+        }, 100);
+    });
+    
+    // Prevent pull-to-refresh on chat messages
+    let startY = 0;
+    chatMessages.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].pageY;
+    }, { passive: true });
+    
+    chatMessages.addEventListener('touchmove', (e) => {
+        const y = e.touches[0].pageY;
+        const scrollTop = chatMessages.scrollTop;
+        
+        // Prevent pull-to-refresh when scrolled to top
+        if (scrollTop <= 0 && y > startY) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+}
