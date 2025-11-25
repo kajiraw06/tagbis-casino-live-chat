@@ -8,6 +8,9 @@ let typingTimeout;
 let currentChannel = 'global';
 let replyingTo = null;
 let editingMessage = null;
+let darkMode = localStorage.getItem('darkMode') === 'true';
+let onlineUsers = [];
+let privateChats = new Map();
 
 // Emoji list
 const emojis = ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾','🙈','🙉','🙊','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','💔','❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕳️','💣','💬','👁️','🗨️','🗯️','💭','💤','👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🧠','🫀','🫁','🦷','🦴','👀','👁️','👅','👄','🎰','🎲','🎯','🎮','🕹️','🎳','♠️','♥️','♦️','♣️','🃏','🀄','🎴','💰','💴','💵','💶','💷','💸','💳','🏆','🥇','🥈','🥉','🏅','🎖️','🍒','🍋','🍊','🍉','🍇','🍓','🍈','🍌','🍍','🥭','🍎','🍏','🍐','🍑','🍒','🍓','🫐','🥝','🍅','🫒','🥥','🥑','🍆','🥔','🥕','🌽','🌶️','🫑','🥒','🥬','🥦','🧄','🧅','🍄','🥜','🌰','🍞','🥐','🥖','🫓','🥨','🥯','🥞','🧇','🧀','🍖','🍗','🥩','🥓','🍔','🍟','🍕','🌭','🥪','🌮','🌯','🫔','🥙','🧆','🥚','🍳','🥘','🍲','🫕','🥣','🥗','🍿','🧈','🧂','🥫','🍱','🍘','🍙','🍚','🍛','🍜','🍝','🍠','🍢','🍣','🍤','🍥','🥮','🍡','🥟','🥠','🥡','🦀','🦞','🦐','🦑','🦪','🍦','🍧','🍨','🍩','🍪','🎂','🍰','🧁','🥧','🍫','🍬','🍭','🍮','🍯','🍼','🥛','☕','🫖','🍵','🍶','🍾','🍷','🍸','🍹','🍺','🍻','🥂','🥃','🥤','🧋','🧃','🧉','🧊','⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🎿','⛷️','🏂','🪂','🏋️','🤼','🤸','🤺','⛹️','🤾','🏌️','🏇','🧘','🏄','🏊','🤽','🚣','🧗','🚵','🚴','🏆','🥇','🥈','🥉','🏅','🎖️','🏵️','🎗️','🎫','🎟️','🎪','🤹','🎭','🩰','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🪘','🎷','🎺','🪗','🎸','🪕','🎻','🎲','♟️','🎯','🎳','🎮','🎰','🧩'];
@@ -22,6 +25,17 @@ const emojiButton = document.getElementById('emojiButton');
 const emojiPicker = document.getElementById('emojiPicker');
 const emojiGrid = document.getElementById('emojiGrid');
 const closeEmojiPicker = document.getElementById('closeEmojiPicker');
+const searchBtn = document.getElementById('searchBtn');
+const searchBar = document.getElementById('searchBar');
+const searchInput = document.getElementById('searchInput');
+const closeSearch = document.getElementById('closeSearch');
+const themeToggle = document.getElementById('themeToggle');
+const toggleSidebar = document.getElementById('toggleSidebar');
+const userSidebar = document.getElementById('userSidebar');
+const closeSidebar = document.getElementById('closeSidebar');
+const userList = document.getElementById('userList');
+const fileButton = document.getElementById('fileButton');
+const fileInput = document.getElementById('fileInput');
 
 // Socket.io event listeners
 socket.on('connect', () => {
@@ -52,6 +66,27 @@ socket.on('userStoppedTyping', () => {
 
 socket.on('disconnect', () => {
     console.log('❌ Disconnected from server');
+});
+
+socket.on('userList', (users) => {
+    onlineUsers = users;
+    updateUserList();
+});
+
+socket.on('userJoined', (user) => {
+    if (!onlineUsers.find(u => u.id === user.id)) {
+        onlineUsers.push(user);
+        updateUserList();
+    }
+});
+
+socket.on('userLeft', (userId) => {
+    onlineUsers = onlineUsers.filter(u => u.id !== userId);
+    updateUserList();
+});
+
+socket.on('privateMessage', (data) => {
+    addPrivateMessage(data);
 });
 
 // Initialize
@@ -89,6 +124,9 @@ function init() {
     usernameInput.addEventListener('input', (e) => {
         username = e.target.value.trim();
         localStorage.setItem('chatUsername', username);
+        if (username) {
+            socket.emit('registerUser', username);
+        }
     });
     
     // Emoji picker
@@ -113,6 +151,26 @@ function init() {
             hideEmojiPicker();
         }
     });
+    
+    // Search functionality
+    searchBtn.addEventListener('click', toggleSearch);
+    closeSearch.addEventListener('click', toggleSearch);
+    searchInput.addEventListener('input', searchMessages);
+    
+    // Theme toggle
+    themeToggle.addEventListener('click', toggleTheme);
+    if (darkMode) {
+        document.body.classList.add('dark-mode');
+        themeToggle.textContent = '☀️';
+    }
+    
+    // User sidebar
+    toggleSidebar.addEventListener('click', () => userSidebar.classList.toggle('open'));
+    closeSidebar.addEventListener('click', () => userSidebar.classList.remove('open'));
+    
+    // File upload
+    fileButton.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileUpload);
 }
 
 function sendMessage() {
@@ -188,6 +246,16 @@ function addMessage(message, isOwn = false) {
     
     messageEl.appendChild(headerEl);
     messageEl.appendChild(contentEl);
+    
+    // Show image if present
+    if (message.image) {
+        const imgEl = document.createElement('img');
+        imgEl.className = 'message-image';
+        imgEl.src = message.image;
+        imgEl.alt = message.fileName || 'Shared image';
+        imgEl.onclick = () => window.open(message.image, '_blank');
+        messageEl.appendChild(imgEl);
+    }
     
     // Reactions
     const reactionsEl = document.createElement('div');
@@ -404,6 +472,151 @@ function deleteMessage(messageId) {
             channel: currentChannel
         });
     }
+}
+
+// Search functionality
+function toggleSearch() {
+    searchBar.classList.toggle('hidden');
+    if (!searchBar.classList.contains('hidden')) {
+        searchInput.focus();
+    } else {
+        searchInput.value = '';
+        clearSearchHighlight();
+    }
+}
+
+function searchMessages() {
+    const query = searchInput.value.toLowerCase().trim();
+    clearSearchHighlight();
+    
+    if (!query) return;
+    
+    const messageElements = chatMessages.querySelectorAll('.message');
+    let foundCount = 0;
+    
+    messageElements.forEach(el => {
+        const content = el.querySelector('.message-content');
+        const text = content.textContent.toLowerCase();
+        
+        if (text.includes(query)) {
+            el.classList.add('search-highlight');
+            foundCount++;
+        }
+    });
+    
+    if (foundCount > 0) {
+        const firstMatch = chatMessages.querySelector('.search-highlight');
+        if (firstMatch) {
+            firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+}
+
+function clearSearchHighlight() {
+    chatMessages.querySelectorAll('.search-highlight').forEach(el => {
+        el.classList.remove('search-highlight');
+    });
+}
+
+// Theme toggle
+function toggleTheme() {
+    darkMode = !darkMode;
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', darkMode);
+    themeToggle.textContent = darkMode ? '☀️' : '🌙';
+}
+
+// User list functions
+function updateUserList() {
+    userList.innerHTML = '';
+    
+    onlineUsers.forEach(user => {
+        const userEl = document.createElement('div');
+        userEl.className = 'user-item';
+        
+        const avatarEl = document.createElement('div');
+        avatarEl.className = 'user-avatar';
+        avatarEl.textContent = user.username ? user.username[0].toUpperCase() : '?';
+        
+        const nameEl = document.createElement('span');
+        nameEl.className = 'user-name';
+        nameEl.textContent = user.username || 'Anonymous';
+        
+        const dmBtn = document.createElement('button');
+        dmBtn.className = 'dm-btn';
+        dmBtn.textContent = '💬';
+        dmBtn.title = 'Direct Message';
+        dmBtn.onclick = () => startPrivateChat(user);
+        
+        userEl.appendChild(avatarEl);
+        userEl.appendChild(nameEl);
+        if (user.id !== socket.id) {
+            userEl.appendChild(dmBtn);
+        }
+        
+        userList.appendChild(userEl);
+    });
+}
+
+function startPrivateChat(user) {
+    alert(`Private messaging with ${user.username} - Coming soon! This will open a private chat window.`);
+    // TODO: Implement private chat window
+}
+
+function addPrivateMessage(data) {
+    // TODO: Handle private messages in a separate window/panel
+    console.log('Private message received:', data);
+}
+
+// File upload
+function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!username) {
+        alert('Please enter a username first!');
+        usernameInput.focus();
+        return;
+    }
+    
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+    }
+    
+    // For images, show preview
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const imageData = event.target.result;
+            socket.emit('sendMessage', {
+                username: username,
+                text: `📷 Shared an image: ${file.name}`,
+                channel: currentChannel,
+                image: imageData,
+                fileName: file.name
+            });
+        };
+        reader.readAsDataURL(file);
+    } else {
+        // For other files, just send file info
+        socket.emit('sendMessage', {
+            username: username,
+            text: `📎 Shared a file: ${file.name}`,
+            channel: currentChannel,
+            fileName: file.name,
+            fileSize: formatFileSize(file.size)
+        });
+    }
+    
+    fileInput.value = '';
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
 // Socket listeners for new features

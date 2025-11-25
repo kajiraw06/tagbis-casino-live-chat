@@ -191,6 +191,10 @@ io.on('connection', (socket) => {
     // Broadcast updated user count
     io.emit('userCount', connectedUsers.size);
     
+    // Send current user list
+    const users = Array.from(userProfiles.values());
+    io.emit('userList', users);
+    
     // Handle channel joining
     socket.on('joinChannel', (channel) => {
         socket.join(channel);
@@ -213,6 +217,13 @@ io.on('connection', (socket) => {
             username: username,
             joinedAt: new Date()
         });
+        
+        // Notify all users about the new user
+        io.emit('userJoined', {
+            id: socket.id,
+            username: username
+        });
+        io.emit('userList', Array.from(userProfiles.values()));
     });
     
     // Handle new messages
@@ -227,7 +238,10 @@ io.on('connection', (socket) => {
             channel: channel,
             replyTo: data.replyTo || null,
             reactions: { '❤️': [], '👍': [], '😂': [] },
-            edited: false
+            edited: false,
+            image: data.image || null,
+            fileName: data.fileName || null,
+            fileSize: data.fileSize || null
         };
         
         // Store message in channel
@@ -305,6 +319,8 @@ io.on('connection', (socket) => {
         connectedUsers.delete(socket.id);
         userProfiles.delete(socket.id);
         io.emit('userCount', connectedUsers.size);
+        io.emit('userLeft', socket.id);
+        io.emit('userList', Array.from(userProfiles.values()));
     });
     
     // Handle typing indicator

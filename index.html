@@ -36,11 +36,31 @@
     
     <div class="chat-container">
         <div class="chat-header">
-            <h2>Live Chat</h2>
-            <div class="online-count">
-                <span class="status-dot"></span>
-                <span id="onlineCount">1 online</span>
+            <div class="header-left">
+                <button id="toggleSidebar" class="icon-btn" title="Users">👥</button>
+                <h2>Live Chat</h2>
             </div>
+            <div class="header-right">
+                <button id="searchBtn" class="icon-btn" title="Search">🔍</button>
+                <button id="themeToggle" class="icon-btn" title="Toggle Theme">🌙</button>
+                <div class="online-count">
+                    <span class="status-dot"></span>
+                    <span id="onlineCount">1 online</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="searchBar" class="search-bar hidden">
+            <input type="text" id="searchInput" placeholder="Search messages...">
+            <button id="closeSearch" class="close-search">✕</button>
+        </div>
+        
+        <div class="sidebar" id="userSidebar">
+            <div class="sidebar-header">
+                <h3>Online Users</h3>
+                <button id="closeSidebar" class="close-btn">✕</button>
+            </div>
+            <div id="userList" class="user-list"></div>
         </div>
         
         <div class="chat-channels">
@@ -57,7 +77,9 @@
         </div>
         
         <div class="chat-input-container">
+            <button id="fileButton" class="emoji-btn" title="Upload file">📎</button>
             <button id="emojiButton" class="emoji-btn" title="Add emoji">😊</button>
+            <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.txt" hidden>
             <input 
                 type="text" 
                 id="messageInput" 
