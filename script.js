@@ -677,28 +677,49 @@ function handleFileUpload(e) {
     if (!username) {
         alert('Please enter a username first!');
         usernameInput.focus();
+        fileInput.value = '';
         return;
     }
     
     // Check file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
         alert('File size must be less than 5MB');
+        fileInput.value = '';
         return;
     }
     
-    // For images, show preview
-    if (file.type.startsWith('image/')) {
+    // For images and videos, show preview
+    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
         const reader = new FileReader();
-        reader.onload = (event) => {
-            const imageData = event.target.result;
-            socket.emit('sendMessage', {
-                username: username,
-                text: `📷 Shared an image: ${file.name}`,
-                channel: currentChannel,
-                image: imageData,
-                fileName: file.name
-            });
+        
+        reader.onerror = (error) => {
+            console.error('File reading error:', error);
+            alert('Error reading file. Please try again.');
+            fileInput.value = '';
         };
+        
+        reader.onload = (event) => {
+            try {
+                const fileData = event.target.result;
+                const fileType = file.type.startsWith('image/') ? '📷' : '🎥';
+                
+                socket.emit('sendMessage', {
+                    username: username,
+                    text: `${fileType} Shared ${file.type.startsWith('image/') ? 'an image' : 'a video'}: ${file.name}`,
+                    channel: currentChannel,
+                    image: fileData,
+                    fileName: file.name,
+                    fileType: file.type
+                });
+                
+                fileInput.value = '';
+            } catch (error) {
+                console.error('Error sending file:', error);
+                alert('Error uploading file. Please try again.');
+                fileInput.value = '';
+            }
+        };
+        
         reader.readAsDataURL(file);
     } else {
         // For other files, just send file info
@@ -707,11 +728,11 @@ function handleFileUpload(e) {
             text: `📎 Shared a file: ${file.name}`,
             channel: currentChannel,
             fileName: file.name,
-            fileSize: formatFileSize(file.size)
+            fileSize: formatFileSize(file.size),
+            fileType: file.type
         });
+        fileInput.value = '';
     }
-    
-    fileInput.value = '';
 }
 
 function formatFileSize(bytes) {
