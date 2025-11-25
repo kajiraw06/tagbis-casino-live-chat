@@ -57,6 +57,7 @@
         </div>
         
         <div class="chat-input-container">
+            <button id="emojiButton" class="emoji-btn" title="Add emoji">😊</button>
             <input 
                 type="text" 
                 id="messageInput" 
@@ -64,6 +65,14 @@
                 maxlength="500"
             >
             <button id="sendButton">Send</button>
+        </div>
+        
+        <div id="emojiPicker" class="emoji-picker hidden">
+            <div class="emoji-picker-header">
+                <span>Emojis</span>
+                <button id="closeEmojiPicker" class="close-emoji">✕</button>
+            </div>
+            <div class="emoji-grid" id="emojiGrid"></div>
         </div>
         
         <div class="chat-footer">

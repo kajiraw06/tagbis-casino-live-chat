@@ -6,6 +6,11 @@ let username = localStorage.getItem('chatUsername') || '';
 let messages = [];
 let typingTimeout;
 let currentChannel = 'global';
+let replyingTo = null;
+let editingMessage = null;
+
+// Emoji list
+const emojis = ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾','🙈','🙉','🙊','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','💔','❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕳️','💣','💬','👁️','🗨️','🗯️','💭','💤','👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🧠','🫀','🫁','🦷','🦴','👀','👁️','👅','👄','🎰','🎲','🎯','🎮','🕹️','🎳','♠️','♥️','♦️','♣️','🃏','🀄','🎴','💰','💴','💵','💶','💷','💸','💳','🏆','🥇','🥈','🥉','🏅','🎖️','🍒','🍋','🍊','🍉','🍇','🍓','🍈','🍌','🍍','🥭','🍎','🍏','🍐','🍑','🍒','🍓','🫐','🥝','🍅','🫒','🥥','🥑','🍆','🥔','🥕','🌽','🌶️','🫑','🥒','🥬','🥦','🧄','🧅','🍄','🥜','🌰','🍞','🥐','🥖','🫓','🥨','🥯','🥞','🧇','🧀','🍖','🍗','🥩','🥓','🍔','🍟','🍕','🌭','🥪','🌮','🌯','🫔','🥙','🧆','🥚','🍳','🥘','🍲','🫕','🥣','🥗','🍿','🧈','🧂','🥫','🍱','🍘','🍙','🍚','🍛','🍜','🍝','🍠','🍢','🍣','🍤','🍥','🥮','🍡','🥟','🥠','🥡','🦀','🦞','🦐','🦑','🦪','🍦','🍧','🍨','🍩','🍪','🎂','🍰','🧁','🥧','🍫','🍬','🍭','🍮','🍯','🍼','🥛','☕','🫖','🍵','🍶','🍾','🍷','🍸','🍹','🍺','🍻','🥂','🥃','🥤','🧋','🧃','🧉','🧊','⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🎿','⛷️','🏂','🪂','🏋️','🤼','🤸','🤺','⛹️','🤾','🏌️','🏇','🧘','🏄','🏊','🤽','🚣','🧗','🚵','🚴','🏆','🥇','🥈','🥉','🏅','🎖️','🏵️','🎗️','🎫','🎟️','🎪','🤹','🎭','🩰','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🪘','🎷','🎺','🪗','🎸','🪕','🎻','🎲','♟️','🎯','🎳','🎮','🎰','🧩'];
 
 // DOM elements
 const chatMessages = document.getElementById('chatMessages');
@@ -13,6 +18,10 @@ const messageInput = document.getElementById('messageInput');
 const sendButton = document.getElementById('sendButton');
 const usernameInput = document.getElementById('usernameInput');
 const onlineCount = document.getElementById('onlineCount');
+const emojiButton = document.getElementById('emojiButton');
+const emojiPicker = document.getElementById('emojiPicker');
+const emojiGrid = document.getElementById('emojiGrid');
+const closeEmojiPicker = document.getElementById('closeEmojiPicker');
 
 // Socket.io event listeners
 socket.on('connect', () => {
@@ -81,6 +90,29 @@ function init() {
         username = e.target.value.trim();
         localStorage.setItem('chatUsername', username);
     });
+    
+    // Emoji picker
+    emojiButton.addEventListener('click', toggleEmojiPicker);
+    closeEmojiPicker.addEventListener('click', hideEmojiPicker);
+    
+    // Populate emoji grid
+    emojis.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'emoji-item';
+        btn.textContent = emoji;
+        btn.addEventListener('click', () => {
+            messageInput.value += emoji;
+            messageInput.focus();
+        });
+        emojiGrid.appendChild(btn);
+    });
+    
+    // Close emoji picker when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!emojiPicker.contains(e.target) && !emojiButton.contains(e.target)) {
+            hideEmojiPicker();
+        }
+    });
 }
 
 function sendMessage() {
@@ -94,12 +126,24 @@ function sendMessage() {
         return;
     }
     
-    // Send message to server via Socket.io
-    socket.emit('sendMessage', {
-        username: username,
-        text: messageText,
-        channel: currentChannel
-    });
+    if (editingMessage) {
+        // Edit existing message
+        socket.emit('editMessage', {
+            messageId: editingMessage.id,
+            newText: messageText,
+            channel: currentChannel
+        });
+        cancelEdit();
+    } else {
+        // Send message to server via Socket.io
+        socket.emit('sendMessage', {
+            username: username,
+            text: messageText,
+            channel: currentChannel,
+            replyTo: replyingTo
+        });
+        cancelReply();
+    }
     
     messageInput.value = '';
     messageInput.focus();
@@ -111,6 +155,15 @@ function addMessage(message, isOwn = false) {
     
     const messageEl = document.createElement('div');
     messageEl.className = 'message';
+    messageEl.dataset.messageId = message.id;
+    
+    // Reply preview
+    if (message.replyTo) {
+        const replyPreview = document.createElement('div');
+        replyPreview.className = 'reply-preview';
+        replyPreview.innerHTML = `<span class="reply-icon">↩</span> Replying to <strong>${message.replyTo.username}</strong>: ${message.replyTo.text.substring(0, 50)}${message.replyTo.text.length > 50 ? '...' : ''}`;
+        messageEl.appendChild(replyPreview);
+    }
     
     const headerEl = document.createElement('div');
     headerEl.className = 'message-header';
@@ -122,6 +175,9 @@ function addMessage(message, isOwn = false) {
     const timestampEl = document.createElement('span');
     timestampEl.className = 'timestamp';
     timestampEl.textContent = formatTime(new Date(message.timestamp));
+    if (message.edited) {
+        timestampEl.textContent += ' (edited)';
+    }
     
     headerEl.appendChild(usernameEl);
     headerEl.appendChild(timestampEl);
@@ -132,6 +188,72 @@ function addMessage(message, isOwn = false) {
     
     messageEl.appendChild(headerEl);
     messageEl.appendChild(contentEl);
+    
+    // Reactions
+    const reactionsEl = document.createElement('div');
+    reactionsEl.className = 'message-reactions';
+    if (message.reactions) {
+        Object.entries(message.reactions).forEach(([emoji, users]) => {
+            if (users.length > 0) {
+                const reactionBtn = document.createElement('button');
+                reactionBtn.className = 'reaction-btn';
+                reactionBtn.innerHTML = `${emoji} ${users.length}`;
+                reactionBtn.onclick = () => toggleReaction(message.id, emoji);
+                reactionsEl.appendChild(reactionBtn);
+            }
+        });
+    }
+    messageEl.appendChild(reactionsEl);
+    
+    // Action buttons
+    const actionsEl = document.createElement('div');
+    actionsEl.className = 'message-actions';
+    
+    const replyBtn = document.createElement('button');
+    replyBtn.className = 'action-btn';
+    replyBtn.innerHTML = '↩️';
+    replyBtn.title = 'Reply';
+    replyBtn.onclick = () => replyToMessage(message);
+    actionsEl.appendChild(replyBtn);
+    
+    const reactBtn = document.createElement('button');
+    reactBtn.className = 'action-btn';
+    reactBtn.innerHTML = '❤️';
+    reactBtn.title = 'React';
+    reactBtn.onclick = () => toggleReaction(message.id, '❤️');
+    actionsEl.appendChild(reactBtn);
+    
+    const thumbsBtn = document.createElement('button');
+    thumbsBtn.className = 'action-btn';
+    thumbsBtn.innerHTML = '👍';
+    thumbsBtn.title = 'Like';
+    thumbsBtn.onclick = () => toggleReaction(message.id, '👍');
+    actionsEl.appendChild(thumbsBtn);
+    
+    const laughBtn = document.createElement('button');
+    laughBtn.className = 'action-btn';
+    laughBtn.innerHTML = '😂';
+    laughBtn.title = 'Laugh';
+    laughBtn.onclick = () => toggleReaction(message.id, '😂');
+    actionsEl.appendChild(laughBtn);
+    
+    if (isOwn) {
+        const editBtn = document.createElement('button');
+        editBtn.className = 'action-btn';
+        editBtn.innerHTML = '✏️';
+        editBtn.title = 'Edit';
+        editBtn.onclick = () => editMessage(message);
+        actionsEl.appendChild(editBtn);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'action-btn delete-btn';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.title = 'Delete';
+        deleteBtn.onclick = () => deleteMessage(message.id);
+        actionsEl.appendChild(deleteBtn);
+    }
+    
+    messageEl.appendChild(actionsEl);
     
     chatMessages.appendChild(messageEl);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -198,6 +320,126 @@ function animateSlots() {
         }, 3000 + (index * 500));
     });
 }
+
+// Emoji picker functions
+function toggleEmojiPicker() {
+    emojiPicker.classList.toggle('hidden');
+}
+
+function hideEmojiPicker() {
+    emojiPicker.classList.add('hidden');
+}
+
+// Reaction functions
+function toggleReaction(messageId, emoji) {
+    socket.emit('toggleReaction', {
+        messageId,
+        emoji,
+        username,
+        channel: currentChannel
+    });
+}
+
+// Reply functions
+function replyToMessage(message) {
+    replyingTo = { id: message.id, username: message.username, text: message.text };
+    messageInput.placeholder = `Replying to ${message.username}...`;
+    messageInput.focus();
+    
+    // Show reply indicator
+    let replyIndicator = document.querySelector('.reply-indicator');
+    if (!replyIndicator) {
+        replyIndicator = document.createElement('div');
+        replyIndicator.className = 'reply-indicator';
+        messageInput.parentElement.insertBefore(replyIndicator, messageInput);
+    }
+    replyIndicator.innerHTML = `<span>↩ Replying to <strong>${message.username}</strong></span><button onclick="cancelReply()">✕</button>`;
+    replyIndicator.style.display = 'flex';
+}
+
+function cancelReply() {
+    replyingTo = null;
+    messageInput.placeholder = 'Type a message...';
+    const replyIndicator = document.querySelector('.reply-indicator');
+    if (replyIndicator) {
+        replyIndicator.style.display = 'none';
+    }
+}
+
+// Edit functions
+function editMessage(message) {
+    editingMessage = message;
+    messageInput.value = message.text;
+    messageInput.placeholder = 'Editing message...';
+    messageInput.focus();
+    sendButton.textContent = 'Update';
+    
+    // Show edit indicator
+    let editIndicator = document.querySelector('.edit-indicator');
+    if (!editIndicator) {
+        editIndicator = document.createElement('div');
+        editIndicator.className = 'edit-indicator';
+        messageInput.parentElement.insertBefore(editIndicator, messageInput);
+    }
+    editIndicator.innerHTML = `<span>✏️ Editing message</span><button onclick="cancelEdit()">✕</button>`;
+    editIndicator.style.display = 'flex';
+}
+
+function cancelEdit() {
+    editingMessage = null;
+    messageInput.value = '';
+    messageInput.placeholder = 'Type a message...';
+    sendButton.textContent = 'Send';
+    const editIndicator = document.querySelector('.edit-indicator');
+    if (editIndicator) {
+        editIndicator.style.display = 'none';
+    }
+}
+
+// Delete function
+function deleteMessage(messageId) {
+    if (confirm('Delete this message?')) {
+        socket.emit('deleteMessage', {
+            messageId,
+            channel: currentChannel
+        });
+    }
+}
+
+// Socket listeners for new features
+socket.on('messageEdited', (data) => {
+    const messageEl = document.querySelector(`[data-message-id="${data.messageId}"]`);
+    if (messageEl) {
+        const contentEl = messageEl.querySelector('.message-content');
+        const timestampEl = messageEl.querySelector('.timestamp');
+        contentEl.textContent = data.newText;
+        timestampEl.textContent = timestampEl.textContent.split(' ')[0] + ' (edited)';
+    }
+});
+
+socket.on('messageDeleted', (data) => {
+    const messageEl = document.querySelector(`[data-message-id="${data.messageId}"]`);
+    if (messageEl) {
+        messageEl.remove();
+    }
+});
+
+socket.on('reactionUpdated', (data) => {
+    const messageEl = document.querySelector(`[data-message-id="${data.messageId}"]`);
+    if (messageEl) {
+        const reactionsEl = messageEl.querySelector('.message-reactions');
+        reactionsEl.innerHTML = '';
+        Object.entries(data.reactions).forEach(([emoji, users]) => {
+            if (users.length > 0) {
+                const reactionBtn = document.createElement('button');
+                reactionBtn.className = 'reaction-btn';
+                reactionBtn.innerHTML = `${emoji} ${users.length}`;
+                reactionBtn.onclick = () => toggleReaction(data.messageId, emoji);
+                reactionsEl.appendChild(reactionBtn);
+            }
+        });
+    }
+});
 
 // Initialize the app
 init();

@@ -539,3 +539,227 @@ body::before {
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
+/* Emoji picker styles */
+.emoji-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    transition: transform 0.2s;
+}
+
+.emoji-btn:hover {
+    transform: scale(1.2);
+}
+
+.emoji-picker {
+    position: absolute;
+    bottom: 140px;
+    left: 12px;
+    right: 12px;
+    background: #213743;
+    border: 1px solid #2f4553;
+    border-radius: 12px;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 768px) {
+    .emoji-picker {
+        bottom: 120px;
+        left: 16px;
+        right: 16px;
+    }
+}
+
+.emoji-picker.hidden {
+    display: none;
+}
+
+.emoji-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #2f4553;
+    background: #1a2c38;
+    border-radius: 12px 12px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.emoji-picker-header span {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.close-emoji {
+    background: transparent;
+    border: none;
+    color: #b1bad3;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.close-emoji:hover {
+    color: #ffffff;
+}
+
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    padding: 12px;
+}
+
+@media (max-width: 768px) {
+    .emoji-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+.emoji-item {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.emoji-item:hover {
+    background: rgba(0, 231, 1, 0.1);
+    transform: scale(1.2);
+}
+
+.emoji-item:active {
+    transform: scale(1);
+}
+
+/* Message actions */
+.message {
+    position: relative;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.message:hover {
+    background: rgba(47, 69, 83, 0.3);
+}
+
+.message:hover .message-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+.message-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+}
+
+.action-btn {
+    background: rgba(47, 69, 83, 0.5);
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: rgba(59, 130, 246, 0.3);
+    transform: scale(1.1);
+}
+
+.action-btn.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* Reactions */
+.message-reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.reaction-btn {
+    background: rgba(0, 231, 1, 0.1);
+    border: 1px solid rgba(0, 231, 1, 0.3);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.reaction-btn:hover {
+    background: rgba(0, 231, 1, 0.2);
+    transform: scale(1.05);
+}
+
+/* Reply preview */
+.reply-preview {
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid #3b82f6;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #7a8b99;
+}
+
+.reply-icon {
+    margin-right: 4px;
+}
+
+/* Reply/Edit indicators */
+.reply-indicator,
+.edit-indicator {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid #3b82f6;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #b1bad3;
+}
+
+.edit-indicator {
+    border-left-color: #00e701;
+    background: rgba(0, 231, 1, 0.1);
+}
+
+.reply-indicator button,
+.edit-indicator button {
+    background: transparent;
+    border: none;
+    color: #b1bad3;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.reply-indicator button:hover,
+.edit-indicator button:hover {
+    color: #ffffff;
+}
+

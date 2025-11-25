@@ -224,7 +224,10 @@ io.on('connection', (socket) => {
             text: data.text,
             timestamp: new Date(),
             socketId: socket.id,
-            channel: channel
+            channel: channel,
+            replyTo: data.replyTo || null,
+            reactions: { '❤️': [], '👍': [], '😂': [] },
+            edited: false
         };
         
         // Store message in channel
@@ -239,6 +242,61 @@ io.on('connection', (socket) => {
         // Broadcast to users in this channel
         io.to(channel).emit('newMessage', message);
         console.log(`[${channel}] ${data.username}: ${data.text}`);
+    });
+    
+    // Handle message edit
+    socket.on('editMessage', (data) => {
+        const channel = data.channel || 'global';
+        const message = channelMessages[channel]?.find(m => m.id === data.messageId);
+        
+        if (message && message.socketId === socket.id) {
+            message.text = data.newText;
+            message.edited = true;
+            io.to(channel).emit('messageEdited', {
+                messageId: data.messageId,
+                newText: data.newText
+            });
+        }
+    });
+    
+    // Handle message delete
+    socket.on('deleteMessage', (data) => {
+        const channel = data.channel || 'global';
+        const messageIndex = channelMessages[channel]?.findIndex(m => m.id === data.messageId);
+        
+        if (messageIndex !== -1 && channelMessages[channel][messageIndex].socketId === socket.id) {
+            channelMessages[channel].splice(messageIndex, 1);
+            io.to(channel).emit('messageDeleted', {
+                messageId: data.messageId
+            });
+        }
+    });
+    
+    // Handle reactions
+    socket.on('toggleReaction', (data) => {
+        const channel = data.channel || 'global';
+        const message = channelMessages[channel]?.find(m => m.id === data.messageId);
+        
+        if (message) {
+            if (!message.reactions) {
+                message.reactions = {};
+            }
+            if (!message.reactions[data.emoji]) {
+                message.reactions[data.emoji] = [];
+            }
+            
+            const userIndex = message.reactions[data.emoji].indexOf(data.username);
+            if (userIndex > -1) {
+                message.reactions[data.emoji].splice(userIndex, 1);
+            } else {
+                message.reactions[data.emoji].push(data.username);
+            }
+            
+            io.to(channel).emit('reactionUpdated', {
+                messageId: data.messageId,
+                reactions: message.reactions
+            });
+        }
     });
     
     // Handle user disconnect
