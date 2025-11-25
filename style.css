@@ -452,6 +452,7 @@ body::before {
     position: relative;
     min-height: 64px;
     align-items: center;
+    overflow: visible;
 }
 
 @media (min-width: 768px) {
@@ -504,6 +505,8 @@ body::before {
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 @media (min-width: 768px) {
@@ -599,6 +602,7 @@ body::before {
     cursor: pointer;
     padding: 8px;
     transition: transform 0.2s;
+    flex-shrink: 0;
 }
 
 .emoji-btn:hover {
@@ -792,6 +796,21 @@ body::before {
     border-radius: 6px;
     font-size: 13px;
     color: #b1bad3;
+}
+
+@media (max-width: 768px) {
+    .reply-indicator,
+    .edit-indicator {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        right: 0;
+        margin-bottom: 0;
+        border-radius: 0;
+        z-index: 10;
+        font-size: 12px;
+        padding: 6px 10px;
+    }
 }
 
 .edit-indicator {
