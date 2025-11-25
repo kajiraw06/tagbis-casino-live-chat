@@ -41,6 +41,10 @@ const fileInput = document.getElementById('fileInput');
 // Socket.io event listeners
 socket.on('connect', () => {
     console.log('✅ Connected to server');
+    // Auto-register if a username already exists (e.g., saved in localStorage)
+    if (username) {
+        socket.emit('registerUser', username);
+    }
 });
 
 socket.on('userCount', (count) => {
@@ -643,31 +647,41 @@ function toggleTheme() {
 // User list functions
 function updateUserList() {
     userList.innerHTML = '';
-    
+
+    if (!onlineUsers || onlineUsers.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.color = '#7a8b99';
+        empty.style.textAlign = 'center';
+        empty.style.padding = '16px';
+        empty.textContent = 'No users online yet.';
+        userList.appendChild(empty);
+        return;
+    }
+
     onlineUsers.forEach(user => {
         const userEl = document.createElement('div');
         userEl.className = 'user-item';
-        
+
         const avatarEl = document.createElement('div');
         avatarEl.className = 'user-avatar';
         avatarEl.textContent = user.username ? user.username[0].toUpperCase() : '?';
-        
+
         const nameEl = document.createElement('span');
         nameEl.className = 'user-name';
         nameEl.textContent = user.username || 'Anonymous';
-        
+
         const dmBtn = document.createElement('button');
         dmBtn.className = 'dm-btn';
         dmBtn.textContent = '💬';
         dmBtn.title = 'Direct Message';
         dmBtn.onclick = () => startPrivateChat(user);
-        
+
         userEl.appendChild(avatarEl);
         userEl.appendChild(nameEl);
         if (user.id !== socket.id) {
             userEl.appendChild(dmBtn);
         }
-        
+
         userList.appendChild(userEl);
     });
 }

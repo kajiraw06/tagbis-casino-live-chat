@@ -1090,6 +1090,14 @@ body::before {
     }
 }
 
+/* Make sidebar full-screen on small mobile devices */
+@media (max-width: 480px) {
+    .sidebar {
+        width: 100%;
+        max-width: none;
+    }
+}
+
 /* Sidebar backdrop overlay */
 .sidebar-backdrop {
     position: fixed;
