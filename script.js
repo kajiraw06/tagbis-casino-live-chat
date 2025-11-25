@@ -305,6 +305,16 @@ function addMessage(message, isOwn = false) {
     laughBtn.onclick = () => toggleReaction(message.id, '😂');
     actionsEl.appendChild(laughBtn);
     
+    const plusBtn = document.createElement('button');
+    plusBtn.className = 'action-btn plus-btn';
+    plusBtn.innerHTML = '➕';
+    plusBtn.title = 'More reactions';
+    plusBtn.onclick = (e) => {
+        e.stopPropagation();
+        showReactionPicker(message.id, plusBtn);
+    };
+    actionsEl.appendChild(plusBtn);
+    
     if (isOwn) {
         const editBtn = document.createElement('button');
         editBtn.className = 'action-btn';
@@ -406,6 +416,98 @@ function toggleReaction(messageId, emoji) {
         username,
         channel: currentChannel
     });
+}
+
+function showReactionPicker(messageId, buttonElement) {
+    // Remove any existing reaction picker
+    const existingPicker = document.querySelector('.reaction-picker');
+    if (existingPicker) {
+        existingPicker.remove();
+        return;
+    }
+    
+    // Create reaction picker
+    const picker = document.createElement('div');
+    picker.className = 'reaction-picker';
+    
+    // Add popular reactions at the top
+    const popularReactions = ['❤️', '👍', '😂', '😮', '😢', '😡', '🎉', '🔥'];
+    const popularSection = document.createElement('div');
+    popularSection.className = 'reaction-popular';
+    
+    popularReactions.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'reaction-emoji-btn';
+        btn.textContent = emoji;
+        btn.onclick = () => {
+            toggleReaction(messageId, emoji);
+            picker.remove();
+        };
+        popularSection.appendChild(btn);
+    });
+    
+    picker.appendChild(popularSection);
+    
+    // Add divider
+    const divider = document.createElement('div');
+    divider.className = 'reaction-divider';
+    picker.appendChild(divider);
+    
+    // Add search
+    const searchContainer = document.createElement('div');
+    searchContainer.className = 'reaction-search';
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Search emoji...';
+    searchInput.className = 'reaction-search-input';
+    searchContainer.appendChild(searchInput);
+    picker.appendChild(searchContainer);
+    
+    // Add all emojis grid
+    const grid = document.createElement('div');
+    grid.className = 'reaction-emoji-grid';
+    
+    emojis.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'reaction-emoji-btn';
+        btn.textContent = emoji;
+        btn.onclick = () => {
+            toggleReaction(messageId, emoji);
+            picker.remove();
+        };
+        grid.appendChild(btn);
+    });
+    
+    picker.appendChild(grid);
+    
+    // Position the picker
+    const messageEl = buttonElement.closest('.message');
+    messageEl.appendChild(picker);
+    
+    // Search functionality
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const buttons = grid.querySelectorAll('.reaction-emoji-btn');
+        
+        buttons.forEach(btn => {
+            if (query === '') {
+                btn.style.display = '';
+            } else {
+                // Simple emoji search - in a real app you'd have emoji names
+                btn.style.display = 'none';
+            }
+        });
+    });
+    
+    // Close picker when clicking outside
+    setTimeout(() => {
+        document.addEventListener('click', function closeReactionPicker(e) {
+            if (!picker.contains(e.target) && e.target !== buttonElement) {
+                picker.remove();
+                document.removeEventListener('click', closeReactionPicker);
+            }
+        });
+    }, 0);
 }
 
 // Reply functions
