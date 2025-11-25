@@ -993,8 +993,10 @@ body::before {
 /* Reaction picker (like Messenger) */
 .reaction-picker {
     position: absolute;
-    bottom: 100%;
-    left: 0;
+    bottom: auto;
+    top: auto;
+    left: 50%;
+    transform: translateX(-50%);
     background: #213743;
     border: 1px solid #2f4553;
     border-radius: 12px;
@@ -1004,7 +1006,7 @@ body::before {
     width: 320px;
     max-height: 400px;
     overflow-y: auto;
-    margin-bottom: 8px;
+    margin-top: -410px;
     animation: reactionPickerSlide 0.2s ease;
 }
 
