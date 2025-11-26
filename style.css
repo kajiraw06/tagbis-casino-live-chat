@@ -840,12 +840,12 @@ body::before {
     background: rgba(47, 69, 83, 0.5);
     border: none;
     border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 14px;
+    padding: 4px 8px;
+    font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 36px;
+    min-height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -854,8 +854,10 @@ body::before {
 
 @media (max-width: 768px) {
     .action-btn {
-        padding: 8px 12px;
-        font-size: 16px;
+        padding: 4px 8px;
+        font-size: 14px;
+        min-width: 36px;
+        min-height: 36px;
     }
 }
 
@@ -878,13 +880,13 @@ body::before {
 
 .reaction-btn {
     background: rgba(0, 231, 1, 0.1);
-    border: 1px solid rgba(0, 231, 1, 0.3);
-    border-radius: 16px;
-    padding: 6px 12px;
-    font-size: 14px;
+    border: 0.25px solid rgba(0, 231, 1, 0.2);
+    border-radius: 14px;
+    padding: 4px 10px;
+    font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
-    min-height: 36px;
+    min-height: 32px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -893,9 +895,9 @@ body::before {
 
 @media (max-width: 768px) {
     .reaction-btn {
-        padding: 8px 14px;
-        font-size: 15px;
-        min-height: 40px;
+        padding: 6px 12px;
+        font-size: 13px;
+        min-height: 36px;
     }
 }
 
@@ -1436,7 +1438,7 @@ body::before {
 
 .plus-btn {
     background: rgba(0, 231, 1, 0.1) !important;
-    border: 1px solid rgba(0, 231, 1, 0.3);
+    border: 0.25px solid rgba(0, 231, 1, 0.2);
 }
 
 .plus-btn:hover {
