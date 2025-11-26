@@ -839,13 +839,13 @@ body::before {
 .action-btn {
     background: rgba(47, 69, 83, 0.5);
     border: none;
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 13px;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 24px;
     cursor: pointer;
     transition: all 0.2s;
-    min-width: 36px;
-    min-height: 36px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -854,10 +854,10 @@ body::before {
 
 @media (max-width: 768px) {
     .action-btn {
-        padding: 4px 8px;
-        font-size: 14px;
-        min-width: 36px;
-        min-height: 36px;
+        padding: 8px;
+        font-size: 24px;
+        width: 48px;
+        height: 48px;
     }
 }
 
