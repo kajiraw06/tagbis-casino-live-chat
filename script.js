@@ -3,14 +3,20 @@ const socket = io('https://tagbis-casino-live-chat.onrender.com');
 
 // Chat application state
 let username = localStorage.getItem('chatUsername') || '';
+let userLevel = localStorage.getItem('userLevel') || 'regular'; // regular, vip, moderator, admin
+let userCoins = parseInt(localStorage.getItem('userCoins')) || 100; // Virtual currency
 let messages = [];
 let typingTimeout;
 let currentChannel = 'global';
+let availableRooms = ['global', 'english', 'spanish', 'vip', 'support'];
 let replyingTo = null;
 let editingMessage = null;
 let darkMode = localStorage.getItem('darkMode') === 'true';
 let onlineUsers = [];
 let privateChats = new Map();
+let mutedUsers = JSON.parse(localStorage.getItem('mutedUsers') || '[]');
+let mentionSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUKbj8LVkHQU5kdfy0HgsBS');
+let messageSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNw');
 
 // Emoji list
 const emojis = ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾','🙈','🙉','🙊','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','💔','❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕳️','💣','💬','👁️','🗨️','🗯️','💭','💤','👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🧠','🫀','🫁','🦷','🦴','👀','👁️','👅','👄','🎰','🎲','🎯','🎮','🕹️','🎳','♠️','♥️','♦️','♣️','🃏','🀄','🎴','💰','💴','💵','💶','💷','💸','💳','🏆','🥇','🥈','🥉','🏅','🎖️','🍒','🍋','🍊','🍉','🍇','🍓','🍈','🍌','🍍','🥭','🍎','🍏','🍐','🍑','🍒','🍓','🫐','🥝','🍅','🫒','🥥','🥑','🍆','🥔','🥕','🌽','🌶️','🫑','🥒','🥬','🥦','🧄','🧅','🍄','🥜','🌰','🍞','🥐','🥖','🫓','🥨','🥯','🥞','🧇','🧀','🍖','🍗','🥩','🥓','🍔','🍟','🍕','🌭','🥪','🌮','🌯','🫔','🥙','🧆','🥚','🍳','🥘','🍲','🫕','🥣','🥗','🍿','🧈','🧂','🥫','🍱','🍘','🍙','🍚','🍛','🍜','🍝','🍠','🍢','🍣','🍤','🍥','🥮','🍡','🥟','🥠','🥡','🦀','🦞','🦐','🦑','🦪','🍦','🍧','🍨','🍩','🍪','🎂','🍰','🧁','🥧','🍫','🍬','🍭','🍮','🍯','🍼','🥛','☕','🫖','🍵','🍶','🍾','🍷','🍸','🍹','🍺','🍻','🥂','🥃','🥤','🧋','🧃','🧉','🧊','⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🎿','⛷️','🏂','🪂','🏋️','🤼','🤸','🤺','⛹️','🤾','🏌️','🏇','🧘','🏄','🏊','🤽','🚣','🧗','🚵','🚴','🏆','🥇','🥈','🥉','🏅','🎖️','🏵️','🎗️','🎫','🎟️','🎪','🤹','🎭','🩰','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🪘','🎷','🎺','🪗','🎸','🪕','🎻','🎲','♟️','🎯','🎳','🎮','🎰','🧩'];
@@ -43,7 +49,12 @@ socket.on('connect', () => {
     console.log('✅ Connected to server');
     // Auto-register if a username already exists (e.g., saved in localStorage)
     if (username) {
-        socket.emit('registerUser', username);
+        socket.emit('registerUser', {
+            username: username,
+            level: userLevel,
+            coins: userCoins,
+            joinDate: localStorage.getItem('joinDate') || new Date().toISOString()
+        });
     }
 });
 
@@ -94,11 +105,32 @@ socket.on('privateMessage', (data) => {
     addPrivateMessage(data);
 });
 
+socket.on('tipReceived', (data) => {
+    userCoins += data.amount;
+    localStorage.setItem('userCoins', userCoins);
+    updateCoinDisplay();
+    showTipAnimation(data.amount);
+    showSystemMessage(`${data.from} tipped you ${data.amount} coins! 💰`);
+    if (messageSound && !document.hidden) {
+        messageSound.play().catch(() => {});
+    }
+});
+
+socket.on('tipSent', (data) => {
+    showSystemMessage(`💰 ${data.from} tipped ${data.to} ${data.amount} coins!`);
+});
+
 // Initialize
 function init() {
+    // Request notification permission
+    requestNotificationPermission();
+    
     if (username) {
         usernameInput.value = username;
     }
+    
+    // Update coin display
+    updateCoinDisplay();
     
     // Channel switching
     document.querySelectorAll('.channel-btn').forEach(btn => {
@@ -130,7 +162,15 @@ function init() {
         username = e.target.value.trim();
         localStorage.setItem('chatUsername', username);
         if (username) {
-            socket.emit('registerUser', username);
+            if (!localStorage.getItem('joinDate')) {
+                localStorage.setItem('joinDate', new Date().toISOString());
+            }
+            socket.emit('registerUser', {
+                username: username,
+                level: userLevel,
+                coins: userCoins,
+                joinDate: localStorage.getItem('joinDate')
+            });
         }
     });
     
@@ -201,6 +241,13 @@ function sendMessage() {
         return;
     }
     
+    // Check for commands
+    if (processChatCommand(messageText)) {
+        messageInput.value = '';
+        messageInput.focus();
+        return;
+    }
+    
     if (editingMessage) {
         // Edit existing message
         socket.emit('editMessage', {
@@ -213,6 +260,7 @@ function sendMessage() {
         // Send message to server via Socket.io
         socket.emit('sendMessage', {
             username: username,
+            userLevel: userLevel,
             text: messageText,
             channel: currentChannel,
             replyTo: replyingTo
@@ -226,26 +274,54 @@ function sendMessage() {
 }
 
 function addMessage(message, isOwn = false) {
+    // Check if user is muted
+    if (mutedUsers.includes(message.username) && !isOwn) {
+        return;
+    }
+    
     messages.push(message);
     
     const messageEl = document.createElement('div');
     messageEl.className = 'message';
     messageEl.dataset.messageId = message.id;
+    messageEl.dataset.username = message.username;
     
     // Reply preview
     if (message.replyTo) {
         const replyPreview = document.createElement('div');
         replyPreview.className = 'reply-preview';
-        replyPreview.innerHTML = `<span class="reply-icon">↩</span> Replying to <strong>${message.replyTo.username}</strong>: ${message.replyTo.text.substring(0, 50)}${message.replyTo.text.length > 50 ? '...' : ''}`;
+        replyPreview.innerHTML = `<span class="reply-icon">↩</span> Replying to <strong>${escapeHtml(message.replyTo.username)}</strong>: ${escapeHtml(message.replyTo.text.substring(0, 50))}${message.replyTo.text.length > 50 ? '...' : ''}`;
         messageEl.appendChild(replyPreview);
     }
     
     const headerEl = document.createElement('div');
     headerEl.className = 'message-header';
     
+    // Username with badge
+    const usernameContainer = document.createElement('span');
+    usernameContainer.className = 'username-container';
+    
     const usernameEl = document.createElement('span');
     usernameEl.className = isOwn ? 'username own' : 'username';
     usernameEl.textContent = message.username;
+    usernameEl.style.cursor = 'pointer';
+    usernameEl.onclick = () => showUserProfile(message.username, message.userLevel || 'regular');
+    
+    // Add level badge
+    const badgeEl = document.createElement('span');
+    badgeEl.className = `user-badge ${message.userLevel || 'regular'}`;
+    const badges = {
+        'admin': '👑',
+        'moderator': '🛡️',
+        'vip': '⭐',
+        'regular': ''
+    };
+    badgeEl.textContent = badges[message.userLevel || 'regular'];
+    
+    usernameContainer.appendChild(usernameEl);
+    if (badgeEl.textContent) {
+        usernameContainer.appendChild(badgeEl);
+    }
     
     const timestampEl = document.createElement('span');
     timestampEl.className = 'timestamp';
@@ -254,12 +330,24 @@ function addMessage(message, isOwn = false) {
         timestampEl.textContent += ' (edited)';
     }
     
-    headerEl.appendChild(usernameEl);
+    headerEl.appendChild(usernameContainer);
     headerEl.appendChild(timestampEl);
     
     const contentEl = document.createElement('div');
     contentEl.className = 'message-content';
-    contentEl.textContent = message.text;
+    
+    // Process message for formatting, mentions, and commands
+    const processedText = processMessageText(message.text);
+    contentEl.innerHTML = processedText;
+    
+    // Check for mentions of current user
+    if (message.text.includes(`@${username}`) && !isOwn) {
+        messageEl.classList.add('mentioned');
+        if (mentionSound && !document.hidden) {
+            mentionSound.play().catch(() => {});
+        }
+        showNotification(`${message.username} mentioned you`, message.text.substring(0, 50));
+    }
     
     messageEl.appendChild(headerEl);
     messageEl.appendChild(contentEl);
@@ -933,4 +1021,429 @@ if ('ontouchstart' in window) {
             e.preventDefault();
         }
     }, { passive: false });
+    
+    // Initialize swipe gestures
+    initSwipeGestures();
+}
+
+// Swipe gesture handler for messages
+function initSwipeGestures() {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    let currentMessage = null;
+    let swipeIndicator = null;
+    let isHorizontalSwipe = false;
+
+    const SWIPE_THRESHOLD = 80; // Minimum distance for swipe action
+    const VERTICAL_THRESHOLD = 30; // Max vertical movement to consider it horizontal
+
+    chatMessages.addEventListener('touchstart', (e) => {
+        const messageEl = e.target.closest('.message');
+        if (!messageEl) return;
+
+        currentMessage = messageEl;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        isHorizontalSwipe = false;
+
+        // Create swipe indicator if it doesn't exist
+        if (!swipeIndicator) {
+            swipeIndicator = document.createElement('div');
+            swipeIndicator.className = 'swipe-action-indicator';
+            messageEl.appendChild(swipeIndicator);
+        }
+    }, { passive: true });
+
+    chatMessages.addEventListener('touchmove', (e) => {
+        if (!currentMessage) return;
+
+        const touchX = e.touches[0].clientX;
+        const touchY = e.touches[0].clientY;
+        const deltaX = touchX - touchStartX;
+        const deltaY = touchY - touchStartY;
+
+        // Determine if it's a horizontal swipe
+        if (!isHorizontalSwipe && Math.abs(deltaX) > 10) {
+            if (Math.abs(deltaY) < VERTICAL_THRESHOLD) {
+                isHorizontalSwipe = true;
+            }
+        }
+
+        if (isHorizontalSwipe) {
+            e.preventDefault();
+            
+            currentMessage.classList.add('swiping');
+            currentMessage.style.transform = `translateX(${deltaX}px)`;
+
+            // Show appropriate indicator
+            if (!swipeIndicator.parentElement) {
+                currentMessage.appendChild(swipeIndicator);
+            }
+
+            if (deltaX > 30) {
+                // Swiping right - Reply
+                swipeIndicator.textContent = '↩️';
+                swipeIndicator.className = 'swipe-action-indicator reply visible';
+            } else if (deltaX < -30) {
+                // Swiping left - Delete (only for own messages)
+                const isOwn = currentMessage.querySelector('.username.own') !== null;
+                if (isOwn) {
+                    swipeIndicator.textContent = '🗑️';
+                    swipeIndicator.className = 'swipe-action-indicator delete visible';
+                }
+            } else {
+                swipeIndicator.classList.remove('visible');
+            }
+
+            // Haptic feedback at threshold
+            if (Math.abs(deltaX) >= SWIPE_THRESHOLD && navigator.vibrate) {
+                navigator.vibrate(10);
+            }
+        }
+    }, { passive: false });
+
+    chatMessages.addEventListener('touchend', (e) => {
+        if (!currentMessage || !isHorizontalSwipe) {
+            currentMessage = null;
+            return;
+        }
+
+        touchEndX = e.changedTouches[0].clientX;
+        const deltaX = touchEndX - touchStartX;
+
+        currentMessage.classList.remove('swiping');
+        currentMessage.classList.add('swipe-complete');
+
+        // Perform action if threshold met
+        if (Math.abs(deltaX) >= SWIPE_THRESHOLD) {
+            if (deltaX > 0) {
+                // Swipe right - Reply
+                const messageId = currentMessage.dataset.messageId;
+                const message = messages.find(m => m.id === messageId);
+                if (message) {
+                    if (navigator.vibrate) navigator.vibrate(20);
+                    replyToMessage(message);
+                }
+            } else {
+                // Swipe left - Delete (only own messages)
+                const isOwn = currentMessage.querySelector('.username.own') !== null;
+                if (isOwn) {
+                    const messageId = currentMessage.dataset.messageId;
+                    if (navigator.vibrate) navigator.vibrate(20);
+                    deleteMessage(messageId);
+                }
+            }
+        }
+
+        // Reset transform
+        setTimeout(() => {
+            if (currentMessage) {
+                currentMessage.style.transform = '';
+                currentMessage.classList.remove('swipe-complete');
+                if (swipeIndicator) {
+                    swipeIndicator.classList.remove('visible');
+                }
+            }
+        }, 300);
+
+        currentMessage = null;
+        isHorizontalSwipe = false;
+    }, { passive: true });
+}
+
+// Helper Functions for New Features
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Process message text for mentions, formatting, links
+function processMessageText(text) {
+    let processed = escapeHtml(text);
+    
+    // Bold: *text*
+    processed = processed.replace(/\*([^\*]+)\*/g, '<strong>$1</strong>');
+    
+    // Italic: _text_
+    processed = processed.replace(/_([^_]+)_/g, '<em>$1</em>');
+    
+    // Code: `code`
+    processed = processed.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Mentions: @username
+    processed = processed.replace(/@(\w+)/g, '<span class="mention" onclick="showUserProfile(\'$1\', \'regular\')">@$1</span>');
+    
+    // Links (basic URL detection)
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    processed = processed.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="message-link">$1</a>');
+    
+    return processed;
+}
+
+// Show user profile modal
+function showUserProfile(targetUsername, level = 'regular') {
+    const modal = document.createElement('div');
+    modal.className = 'profile-modal';
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+    
+    const modalContent = document.createElement('div');
+    modalContent.className = 'profile-modal-content';
+    
+    const badges = {
+        'admin': '👑 Admin',
+        'moderator': '🛡️ Moderator',
+        'vip': '⭐ VIP Member',
+        'regular': '💬 Member'
+    };
+    
+    const isMuted = mutedUsers.includes(targetUsername);
+    const isOwnProfile = targetUsername === username;
+    
+    modalContent.innerHTML = `
+        <div class="profile-header">
+            <div class="profile-avatar">${targetUsername[0].toUpperCase()}</div>
+            <div class="profile-info">
+                <h3>${escapeHtml(targetUsername)}</h3>
+                <span class="profile-badge ${level}">${badges[level] || badges.regular}</span>
+            </div>
+            <button class="profile-close" onclick="this.closest('.profile-modal').remove()">✕</button>
+        </div>
+        <div class="profile-stats">
+            <div class="stat-item">
+                <span class="stat-label">Messages</span>
+                <span class="stat-value">${messages.filter(m => m.username === targetUsername).length}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Level</span>
+                <span class="stat-value">${level.toUpperCase()}</span>
+            </div>
+        </div>
+        ${!isOwnProfile ? `
+        <div class="profile-actions">
+            <button class="profile-action-btn tip-btn" onclick="showTipModal('${targetUsername}')">💰 Send Tip</button>
+            <button class="profile-action-btn ${isMuted ? 'unmute-btn' : 'mute-btn'}" onclick="toggleMuteUser('${targetUsername}')">${isMuted ? '🔊 Unmute' : '🔇 Mute'}</button>
+            <button class="profile-action-btn report-btn" onclick="reportUser('${targetUsername}')">⚠️ Report</button>
+        </div>
+        ` : ''}
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+}
+
+// Mute/unmute user
+function toggleMuteUser(targetUsername) {
+    const index = mutedUsers.indexOf(targetUsername);
+    if (index > -1) {
+        mutedUsers.splice(index, 1);
+        showSystemMessage(`Unmuted ${targetUsername}`);
+    } else {
+        mutedUsers.push(targetUsername);
+        showSystemMessage(`Muted ${targetUsername}. You won't see their messages.`);
+    }
+    localStorage.setItem('mutedUsers', JSON.stringify(mutedUsers));
+    
+    // Remove modal and refresh messages
+    document.querySelector('.profile-modal')?.remove();
+    refreshMessages();
+}
+
+// Report user
+function reportUser(targetUsername) {
+    if (confirm(`Report ${targetUsername} for inappropriate behavior?`)) {
+        socket.emit('reportUser', { reportedUser: targetUsername, reporter: username });
+        showSystemMessage(`Reported ${targetUsername}. Our moderators will review.`);
+        document.querySelector('.profile-modal')?.remove();
+    }
+}
+
+// Tip system
+function showTipModal(targetUsername) {
+    document.querySelector('.profile-modal')?.remove();
+    
+    const modal = document.createElement('div');
+    modal.className = 'profile-modal tip-modal';
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+    
+    const modalContent = document.createElement('div');
+    modalContent.className = 'profile-modal-content';
+    
+    modalContent.innerHTML = `
+        <div class="profile-header">
+            <h3>💰 Send Tip to ${escapeHtml(targetUsername)}</h3>
+            <button class="profile-close" onclick="this.closest('.profile-modal').remove()">✕</button>
+        </div>
+        <div class="tip-content">
+            <p>Your coins: <strong>${userCoins}</strong> 🪙</p>
+            <input type="number" id="tipAmount" class="tip-input" placeholder="Amount" min="1" max="${userCoins}" value="10">
+            <div class="tip-presets">
+                <button onclick="document.getElementById('tipAmount').value='10'">10 🪙</button>
+                <button onclick="document.getElementById('tipAmount').value='50'">50 🪙</button>
+                <button onclick="document.getElementById('tipAmount').value='100'">100 🪙</button>
+                <button onclick="document.getElementById('tipAmount').value='${userCoins}'">All In</button>
+            </div>
+            <button class="tip-send-btn" onclick="sendTip('${targetUsername}')">Send Tip</button>
+        </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+}
+
+// Send tip
+function sendTip(targetUsername) {
+    const amount = parseInt(document.getElementById('tipAmount').value);
+    
+    if (!amount || amount < 1) {
+        alert('Please enter a valid amount');
+        return;
+    }
+    
+    if (amount > userCoins) {
+        alert('Insufficient coins!');
+        return;
+    }
+    
+    userCoins -= amount;
+    localStorage.setItem('userCoins', userCoins);
+    updateCoinDisplay();
+    
+    socket.emit('sendTip', {
+        from: username,
+        to: targetUsername,
+        amount: amount,
+        channel: currentChannel
+    });
+    
+    // Show tip animation
+    showTipAnimation(amount);
+    
+    document.querySelector('.tip-modal')?.remove();
+    showSystemMessage(`You tipped ${targetUsername} ${amount} coins! 💰`);
+}
+
+// Tip animation
+function showTipAnimation(amount) {
+    const coin = document.createElement('div');
+    coin.className = 'tip-coin-animation';
+    coin.textContent = `+${amount} 🪙`;
+    document.body.appendChild(coin);
+    
+    setTimeout(() => coin.remove(), 2000);
+}
+
+// Show system message
+function showSystemMessage(text) {
+    const systemMsg = document.createElement('div');
+    systemMsg.className = 'system-message';
+    systemMsg.textContent = text;
+    chatMessages.appendChild(systemMsg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    setTimeout(() => systemMsg.remove(), 5000);
+}
+
+// Refresh messages (after muting/unmuting)
+function refreshMessages() {
+    const messagesContainer = chatMessages;
+    Array.from(messagesContainer.children).forEach(msgEl => {
+        if (msgEl.classList.contains('message')) {
+            const msgUsername = msgEl.dataset.username;
+            if (mutedUsers.includes(msgUsername)) {
+                msgEl.style.display = 'none';
+            } else {
+                msgEl.style.display = '';
+            }
+        }
+    });
+}
+
+// Desktop notifications
+function showNotification(title, body) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+            body: body,
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+            tag: 'chat-notification'
+        });
+    }
+}
+
+// Request notification permission
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+// Process chat commands
+function processChatCommand(text) {
+    if (!text.startsWith('/')) return false;
+    
+    const parts = text.slice(1).split(' ');
+    const command = parts[0].toLowerCase();
+    const args = parts.slice(1);
+    
+    switch (command) {
+        case 'help':
+            showSystemMessage('Commands: /help, /clear, /mute <user>, /unmute <user>, /tip <user> <amount>, /rooms');
+            break;
+        case 'clear':
+            chatMessages.innerHTML = '';
+            messages = [];
+            showSystemMessage('Chat cleared');
+            break;
+        case 'mute':
+            if (args[0]) {
+                toggleMuteUser(args[0]);
+            } else {
+                showSystemMessage('Usage: /mute <username>');
+            }
+            break;
+        case 'unmute':
+            if (args[0]) {
+                toggleMuteUser(args[0]);
+            } else {
+                showSystemMessage('Usage: /unmute <username>');
+            }
+            break;
+        case 'tip':
+            if (args[0]) {
+                showTipModal(args[0]);
+            } else {
+                showSystemMessage('Usage: /tip <username>');
+            }
+            break;
+        case 'rooms':
+            showSystemMessage(`Available rooms: ${availableRooms.join(', ')}`);
+            break;
+        default:
+            showSystemMessage(`Unknown command: /${command}. Type /help for commands.`);
+    }
+    
+    return true;
+}
+
+// Update coin display in header
+function updateCoinDisplay() {
+    const coinAmountEl = document.querySelector('.coin-amount');
+    if (coinAmountEl) {
+        coinAmountEl.textContent = userCoins;
+        
+        // Animate coin update
+        coinAmountEl.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+            coinAmountEl.style.transform = 'scale(1)';
+        }, 200);
+    }
 }
