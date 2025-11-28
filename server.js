@@ -210,21 +210,52 @@ io.on('connection', (socket) => {
     socket.currentChannel = 'global';
     socket.emit('recentMessages', channelMessages.global);
     
-    // Handle username registration
-    socket.on('registerUser', (username) => {
-        userProfiles.set(socket.id, {
-            id: socket.id,
-            username: username,
-            joinedAt: new Date()
+        // Handle username registration with validation
+        socket.on('registerUser', (payload) => {
+            const rawName = typeof payload === 'string' ? payload : payload?.username;
+            const level = typeof payload === 'object' ? (payload.level || 'regular') : 'regular';
+            const coins = typeof payload === 'object' ? (payload.coins || 0) : 0;
+            const joinDate = typeof payload === 'object' ? (payload.joinDate || new Date().toISOString()) : new Date().toISOString();
+
+            // Basic validation rules
+            const trimmed = (rawName || '').trim();
+            const isValidLength = trimmed.length >= 3 && trimmed.length <= 20;
+            const isValidChars = /^[A-Za-z0-9_]+$/.test(trimmed);
+
+            if (!trimmed || !isValidLength || !isValidChars) {
+                socket.emit('registrationError', {
+                    error: 'Invalid username. Use 3-20 letters, numbers, or underscores.'
+                });
+                return;
+            }
+
+            // Prevent duplicates among currently connected users (case-insensitive)
+            const existing = Array.from(userProfiles.values()).find(u => u.username?.toLowerCase() === trimmed.toLowerCase());
+            if (existing) {
+                socket.emit('registrationError', {
+                    error: 'Username already in use. Please choose another.'
+                });
+                return;
+            }
+
+            // Persist user profile for this socket
+            userProfiles.set(socket.id, {
+                id: socket.id,
+                username: trimmed,
+                level,
+                coins,
+                joinedAt: joinDate
+            });
+
+            // Notify all users about the new/updated user
+            io.emit('userJoined', {
+                id: socket.id,
+                username: trimmed,
+                level,
+                coins
+            });
+            io.emit('userList', Array.from(userProfiles.values()));
         });
-        
-        // Notify all users about the new user
-        io.emit('userJoined', {
-            id: socket.id,
-            username: username
-        });
-        io.emit('userList', Array.from(userProfiles.values()));
-    });
     
     // Handle new messages
     socket.on('sendMessage', (data) => {
