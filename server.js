@@ -289,6 +289,15 @@ io.on('connection', (socket) => {
         console.log(`[${channel}] ${data.username}: ${data.text}`);
     });
     
+    // Handle explicit logout (keep socket connected, remove identity)
+    socket.on('logout', () => {
+        if (userProfiles.has(socket.id)) {
+            userProfiles.delete(socket.id);
+            io.emit('userLeft', socket.id);
+            io.emit('userList', Array.from(userProfiles.values()));
+        }
+    });
+    
     // Handle message edit
     socket.on('editMessage', (data) => {
         const channel = data.channel || 'global';

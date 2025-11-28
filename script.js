@@ -44,6 +44,7 @@ const userList = document.getElementById('userList');
 const fileButton = document.getElementById('fileButton');
 const fileInput = document.getElementById('fileInput');
 const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
 
 // Socket.io event listeners
 socket.on('connect', () => {
@@ -106,6 +107,7 @@ socket.on('userJoined', (user) => {
         hideAuthModal();
         clearAuthError();
         if (loginBtn) loginBtn.textContent = 'Change Name';
+        if (logoutBtn) logoutBtn.style.display = '';
     }
 });
 
@@ -233,6 +235,25 @@ function init() {
             const authUsername = document.getElementById('authUsername');
             if (authUsername) authUsername.value = username || '';
             clearAuthError();
+        });
+    }
+    
+    // Logout button
+    if (logoutBtn) {
+        logoutBtn.style.display = username ? '' : 'none';
+        logoutBtn.addEventListener('click', () => {
+            // Clear identity locally
+            username = '';
+            localStorage.removeItem('chatUsername');
+            localStorage.removeItem('joinDate');
+            if (usernameInput) usernameInput.value = '';
+            // Update header buttons
+            if (loginBtn) loginBtn.textContent = 'Login';
+            logoutBtn.style.display = 'none';
+            // Inform server to drop profile from user list
+            socket.emit('logout');
+            // Prompt auth again
+            showAuthModal();
         });
     }
     
