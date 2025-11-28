@@ -351,6 +351,23 @@ function addMessage(message, isOwn = false) {
     
     messageEl.appendChild(headerEl);
     messageEl.appendChild(contentEl);
+
+    // Mobile: tap to toggle actions visibility
+    messageEl.addEventListener('click', () => {
+        if (window.matchMedia('(max-width: 768px)').matches) {
+            const alreadyShown = messageEl.classList.contains('show-actions');
+            // Hide actions on other messages
+            document.querySelectorAll('.message.show-actions').forEach(el => {
+                if (el !== messageEl) el.classList.remove('show-actions');
+            });
+            // Toggle current
+            if (alreadyShown) {
+                messageEl.classList.remove('show-actions');
+            } else {
+                messageEl.classList.add('show-actions');
+            }
+        }
+    });
     
     // Show image if present
     if (message.image) {

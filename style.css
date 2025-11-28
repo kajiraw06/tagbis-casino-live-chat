@@ -910,8 +910,15 @@ body::before {
 
 @media (max-width: 768px) {
     .message-actions {
+        opacity: 0;
+        visibility: hidden;
+    }
+    
+    /* Show actions on tap (when JS adds class) */
+    .message.show-actions .message-actions {
         opacity: 1;
         visibility: visible;
+        display: flex;
     }
 }
 
