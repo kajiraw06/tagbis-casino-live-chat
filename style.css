@@ -899,28 +899,27 @@ body::before {
 }
 
 .message-actions {
-    display: none;
+    display: flex;
     gap: 4px;
-    margin-top: 0;
+    margin-top: 6px;
+    opacity: 0;
+    visibility: hidden;
     transition: all 0.2s;
     flex-wrap: wrap;
 }
 
 @media (max-width: 768px) {
     .message-actions {
-        display: flex;
-        margin-top: 6px;
+        opacity: 1;
+        visibility: visible;
     }
 }
 
 /* Show actions on hover for desktop without reserving space */
 @media (min-width: 769px) {
     .message:hover .message-actions {
-        display: flex;
-        margin-top: 0;
-        position: absolute;
-        bottom: 8px;
-        right: 8px;
+        opacity: 1;
+        visibility: visible;
     }
 }
 
