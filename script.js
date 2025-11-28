@@ -1,5 +1,8 @@
-// Initialize Socket.io connection
-const socket = io('https://tagbis-casino-live-chat.onrender.com');
+// Initialize Socket.io connection (will be reconnected after auth with token)
+const initialAuthToken = localStorage.getItem('authToken');
+const socket = io('https://tagbis-casino-live-chat.onrender.com', {
+    auth: initialAuthToken ? { token: initialAuthToken } : {}
+});
 
 // Chat application state
 let username = localStorage.getItem('chatUsername') || '';
@@ -50,14 +53,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 socket.on('connect', () => {
     console.log('✅ Connected to server');
     // Auto-register if a username already exists (e.g., saved in localStorage)
-    if (username) {
-        socket.emit('registerUser', {
-            username: username,
-            level: userLevel,
-            coins: userCoins,
-            joinDate: localStorage.getItem('joinDate') || new Date().toISOString()
-        });
-    }
+    // For authenticated sockets user profiles are announced automatically.
 });
 
 socket.on('userCount', (count) => {
@@ -140,10 +136,9 @@ function init() {
     // Request notification permission
     requestNotificationPermission();
     
-    if (username) {
+    if (initialAuthToken && username) {
         usernameInput.value = username;
     } else {
-        // Show auth modal if no username
         showAuthModal();
     }
     
@@ -176,21 +171,11 @@ function init() {
         }
     });
     
-    usernameInput.addEventListener('input', (e) => {
-        username = e.target.value.trim();
-        localStorage.setItem('chatUsername', username);
-        if (username) {
-            if (!localStorage.getItem('joinDate')) {
-                localStorage.setItem('joinDate', new Date().toISOString());
-            }
-            socket.emit('registerUser', {
-                username: username,
-                level: userLevel,
-                coins: userCoins,
-                joinDate: localStorage.getItem('joinDate')
-            });
-        }
-    });
+    // Disable direct username edits in new auth model
+    if (usernameInput) {
+        usernameInput.placeholder = 'Logged in via account';
+        usernameInput.disabled = true;
+    }
     
     // Emoji picker
     emojiButton.addEventListener('click', toggleEmojiPicker);
@@ -242,17 +227,29 @@ function init() {
     if (logoutBtn) {
         logoutBtn.style.display = username ? '' : 'none';
         logoutBtn.addEventListener('click', () => {
-            // Clear identity locally
+            const token = localStorage.getItem('authToken');
+            // Attempt server-side logout (stateless but keeps API symmetry)
+            if (token) {
+                fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }).catch(() => {});
+            }
+            // Drop local auth/session data
             username = '';
+            userLevel = 'regular';
+            localStorage.removeItem('authToken');
             localStorage.removeItem('chatUsername');
             localStorage.removeItem('joinDate');
             if (usernameInput) usernameInput.value = '';
+            // Disconnect current authed socket
+            try { socket.disconnect(); } catch {}
+            // Create a fresh unauthenticated socket connection
+            window.socket = io('https://tagbis-casino-live-chat.onrender.com');
             // Update header buttons
             if (loginBtn) loginBtn.textContent = 'Login';
             logoutBtn.style.display = 'none';
-            // Inform server to drop profile from user list
-            socket.emit('logout');
-            // Prompt auth again
+            // Show auth modal for new login
             showAuthModal();
         });
     }
@@ -277,35 +274,88 @@ function init() {
     fileButton.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', handleFileUpload);
 
-    // Auth modal events
+    // Auth modal (new login/register with password + JWT)
     const authModal = document.getElementById('authModal');
     const authSubmit = document.getElementById('authSubmit');
     const authUsername = document.getElementById('authUsername');
+    const authPassword = document.getElementById('authPassword');
     const closeAuth = document.getElementById('closeAuth');
     const authError = document.getElementById('authError');
-    if (authModal && authSubmit && authUsername) {
-        authSubmit.addEventListener('click', () => {
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const authTitle = document.getElementById('authTitle');
+    const authHint = document.getElementById('authHint');
+    let authMode = 'login';
+
+    function setAuthMode(mode) {
+        authMode = mode;
+        tabLogin.classList.toggle('active', mode === 'login');
+        tabRegister.classList.toggle('active', mode === 'register');
+        authSubmit.textContent = mode === 'login' ? 'Login' : 'Create Account';
+        authTitle.textContent = mode === 'login' ? 'Login to Chat' : 'Create Account';
+        authHint.textContent = mode === 'login' ? 'New here? Switch to Register to create an account.' : 'Already have an account? Switch to Login.';
+        clearAuthError();
+        authPassword.value = '';
+    }
+
+    tabLogin?.addEventListener('click', () => setAuthMode('login'));
+    tabRegister?.addEventListener('click', () => setAuthMode('register'));
+
+    if (authModal && authSubmit && authUsername && authPassword) {
+        authSubmit.addEventListener('click', async () => {
             const name = authUsername.value.trim();
-            // Client-side validation mirroring server rules
+            const pass = authPassword.value;
             const isValidLength = name.length >= 3 && name.length <= 20;
             const isValidChars = /^[A-Za-z0-9_]+$/.test(name);
             if (!name || !isValidLength || !isValidChars) {
-                showAuthError('Use 3-20 letters, numbers, or underscores.');
+                showAuthError('Username: 3-20 letters, numbers, underscores.');
                 authUsername.focus();
                 return;
             }
-            // Emit registration; wait for server acceptance before persisting and closing
-            socket.emit('registerUser', {
-                username: name,
-                level: userLevel,
-                coins: userCoins,
-                joinDate: localStorage.getItem('joinDate') || new Date().toISOString()
-            });
+            if (authMode === 'register' && pass.length < 6) {
+                showAuthError('Password must be at least 6 characters.');
+                authPassword.focus();
+                return;
+            }
+            if (authMode === 'login' && pass.length === 0) {
+                showAuthError('Enter your password.');
+                authPassword.focus();
+                return;
+            }
+            try {
+                showAuthError('Processing...');
+                const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+                const resp = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: name, password: pass })
+                });
+                const data = await resp.json();
+                if (!data.success) {
+                    showAuthError(data.error || 'Authentication failed.');
+                    return;
+                }
+                // Store token and user info
+                localStorage.setItem('authToken', data.token);
+                username = data.user.username;
+                userCoins = data.user.coins;
+                userLevel = data.user.level;
+                localStorage.setItem('chatUsername', username);
+                localStorage.setItem('userCoins', userCoins);
+                localStorage.setItem('userLevel', userLevel);
+                // (Re)connect socket with auth token
+                try { socket.disconnect(); } catch {}
+                const newSocket = io('https://tagbis-casino-live-chat.onrender.com', { auth: { token: data.token } });
+                // Transfer listeners? For simplicity we reload page to reset state
+                location.reload();
+            } catch (err) {
+                console.error('Auth error', err);
+                showAuthError('Network error. Try again.');
+            }
         });
         closeAuth?.addEventListener('click', hideAuthModal);
-        authUsername.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') authSubmit.click();
-        });
+        authPassword.addEventListener('keypress', (e) => { if (e.key === 'Enter') authSubmit.click(); });
+        authUsername.addEventListener('keypress', (e) => { if (e.key === 'Enter') authSubmit.click(); });
     }
 }
 
