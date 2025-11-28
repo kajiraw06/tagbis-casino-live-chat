@@ -1,6 +1,7 @@
 // Initialize Socket.io connection (will be reconnected after auth with token)
 const initialAuthToken = localStorage.getItem('authToken');
-const socket = io('https://tagbis-casino-live-chat.onrender.com', {
+const socketUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://tagbis-casino-live-chat.onrender.com';
+const socket = io(socketUrl, {
     auth: initialAuthToken ? { token: initialAuthToken } : {}
 });
 
@@ -102,7 +103,7 @@ socket.on('userJoined', (user) => {
         }
         hideAuthModal();
         clearAuthError();
-        if (loginBtn) loginBtn.textContent = 'Change Name';
+        if (loginBtn) loginBtn.innerHTML = '✏️ Change';
         if (logoutBtn) logoutBtn.style.display = '';
     }
 });
@@ -214,7 +215,7 @@ function init() {
     
     // Header Login/Change Name button
     if (loginBtn) {
-        loginBtn.textContent = username ? 'Change Name' : 'Login';
+        loginBtn.innerHTML = username ? '✏️ Change' : '🔓 Login';
         loginBtn.addEventListener('click', () => {
             showAuthModal();
             const authUsername = document.getElementById('authUsername');
@@ -245,9 +246,9 @@ function init() {
             // Disconnect current authed socket
             try { socket.disconnect(); } catch {}
             // Create a fresh unauthenticated socket connection
-            window.socket = io('https://tagbis-casino-live-chat.onrender.com');
+            window.socket = io(socketUrl);
             // Update header buttons
-            if (loginBtn) loginBtn.textContent = 'Login';
+            if (loginBtn) loginBtn.innerHTML = '🔓 Login';
             logoutBtn.style.display = 'none';
             // Show auth modal for new login
             showAuthModal();
@@ -345,7 +346,7 @@ function init() {
                 localStorage.setItem('userLevel', userLevel);
                 // (Re)connect socket with auth token
                 try { socket.disconnect(); } catch {}
-                const newSocket = io('https://tagbis-casino-live-chat.onrender.com', { auth: { token: data.token } });
+                const newSocket = io(socketUrl, { auth: { token: data.token } });
                 // Transfer listeners? For simplicity we reload page to reset state
                 location.reload();
             } catch (err) {

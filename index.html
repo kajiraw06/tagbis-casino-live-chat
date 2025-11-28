@@ -47,8 +47,8 @@
                 </div>
                 <button id="searchBtn" class="icon-btn" title="Search">🔍</button>
                 <button id="themeToggle" class="icon-btn" title="Toggle Theme">🌙</button>
-                <button id="loginBtn" class="login-btn" title="Login or change name">Login</button>
-                <button id="logoutBtn" class="login-btn" title="Logout" style="display:none;">Logout</button>
+                <button id="loginBtn" class="login-btn" title="Login or change name">🔓 Login</button>
+                <button id="logoutBtn" title="Logout" style="display:none;">🚪 Logout</button>
                 <div class="online-count">
                     <span class="status-dot"></span>
                     <span id="onlineCount">1 online</span>
@@ -87,18 +87,24 @@
         <div id="authModal" class="auth-modal hidden">
             <div class="auth-modal-content">
                 <div class="auth-header">
-                    <h3>Welcome to Live Chat</h3>
+                    <h3 id="authTitle">Account Access</h3>
                     <button id="closeAuth" class="auth-close">✕</button>
                 </div>
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-mode="login" id="tabLogin">Login</button>
+                    <button class="auth-tab" data-mode="register" id="tabRegister">Register</button>
+                </div>
                 <div class="auth-body">
-                    <div class="auth-avatar-preview" id="authAvatarPreview">💬</div>
+                    <div class="auth-avatar-preview" id="authAvatarPreview">🔐</div>
                     <label class="auth-label" for="authUsername">Username</label>
-                    <input id="authUsername" class="auth-input" type="text" placeholder="Enter your username" maxlength="20" />
+                    <input id="authUsername" class="auth-input" type="text" placeholder="Your username" maxlength="20" autocomplete="username" />
+                    <label class="auth-label" for="authPassword">Password</label>
+                    <input id="authPassword" class="auth-input" type="password" placeholder="Your password" minlength="6" autocomplete="current-password" />
                     <div id="authError" class="auth-error"></div>
                     <div class="auth-actions">
-                        <button id="authSubmit" class="auth-primary-btn">Enter Chat</button>
+                        <button id="authSubmit" class="auth-primary-btn">Login</button>
                     </div>
-                    <p class="auth-hint">By entering, you agree to follow our community rules.</p>
+                    <p class="auth-hint" id="authHint">New here? Switch to Register to create an account.</p>
                 </div>
             </div>
         </div>
@@ -135,6 +141,6 @@
     </div>
 
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=3"></script>
 </body>
 </html>

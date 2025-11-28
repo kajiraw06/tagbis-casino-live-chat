@@ -3,6 +3,10 @@ const http = require('http');
 const socketIO = require('socket.io');
 const path = require('path');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const db = require('./db');
 
 const app = express();
 const server = http.createServer(app);
@@ -14,16 +18,29 @@ const io = socketIO(server, {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*', // Adjust to specific origin in production
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Disable caching for development
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+});
 
 // Serve static files
 app.use(express.static(path.join(__dirname)));
 
 // Store connected users and recent messages per channel
 let connectedUsers = new Set();
-let userProfiles = new Map(); // Store user info
+let userProfiles = new Map(); // Runtime socket user profiles (authenticated connections)
 let channelMessages = {
     global: [],
     filipino: [],
@@ -35,7 +52,75 @@ let channelMessages = {
 const MAX_MESSAGES = 100;
 
 // ============================================
-// REST API ENDPOINTS
+// AUTH HELPERS
+// ============================================
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-change-this-secret';
+
+function generateToken(user) {
+    return jwt.sign({ uid: user.id, username: user.username, level: user.level, coins: user.coins }, JWT_SECRET, { expiresIn: '7d' });
+}
+
+function verifyToken(token) {
+    try { return jwt.verify(token, JWT_SECRET); } catch { return null; }
+}
+
+// ============================================
+// AUTH ROUTES
+// ============================================
+app.post('/api/auth/register', (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ success: false, error: 'Username and password required' });
+    }
+    const trimmed = username.trim();
+    const isValidLength = trimmed.length >= 3 && trimmed.length <= 20;
+    const isValidChars = /^[A-Za-z0-9_]+$/.test(trimmed);
+    if (!isValidLength || !isValidChars) {
+        return res.status(400).json({ success: false, error: 'Username must be 3-20 chars: letters, numbers, underscore.' });
+    }
+    if (password.length < 6) {
+        return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.' });
+    }
+    if (db.getUserByUsername(trimmed)) {
+        return res.status(409).json({ success: false, error: 'Username already taken.' });
+    }
+    const hash = bcrypt.hashSync(password, 10);
+    const newUser = db.createUser(trimmed, hash);
+    const token = generateToken(newUser);
+    res.json({ success: true, token, user: { id: newUser.id, username: newUser.username, level: newUser.level, coins: newUser.coins } });
+});
+
+app.post('/api/auth/login', (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ success: false, error: 'Username and password required' });
+    }
+    const user = db.getUserByUsername(username.trim());
+    if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+        return res.status(401).json({ success: false, error: 'Invalid credentials.' });
+    }
+    const token = generateToken(user);
+    res.json({ success: true, token, user: { id: user.id, username: user.username, level: user.level, coins: user.coins } });
+});
+
+app.post('/api/auth/logout', (_req, res) => {
+    // Client clears token; stateless JWT.
+    res.json({ success: true });
+});
+
+app.get('/api/auth/me', (req, res) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) return res.status(401).json({ success: false, error: 'No token' });
+    const decoded = verifyToken(token);
+    if (!decoded) return res.status(401).json({ success: false, error: 'Invalid token' });
+    const user = db.getUserById(decoded.uid);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+    res.json({ success: true, user: { id: user.id, username: user.username, level: user.level, coins: user.coins } });
+});
+
+// ============================================
+// EXISTING REST API ENDPOINTS
 // ============================================
 
 // Get all channels
@@ -185,7 +270,32 @@ app.get('/api/health', (req, res) => {
 // ============================================
 
 io.on('connection', (socket) => {
-    console.log('New user connected:', socket.id);
+    // Authenticate socket via token in handshake.auth.token (client passes when connecting)
+    const token = socket.handshake.auth?.token;
+    let decoded = token ? verifyToken(token) : null;
+    if (decoded) {
+        const user = db.getUserById(decoded.uid);
+        if (user) {
+            userProfiles.set(socket.id, {
+                id: socket.id,
+                accountId: user.id,
+                username: user.username,
+                level: user.level,
+                coins: user.coins
+            });
+            // Announce authenticated user
+            io.emit('userJoined', {
+                id: socket.id,
+                username: user.username,
+                level: user.level,
+                coins: user.coins
+            });
+        } else {
+            decoded = null; // user no longer exists
+        }
+    }
+
+    console.log('New user connected:', socket.id, decoded ? '(authenticated)' : '(guest)');
     connectedUsers.add(socket.id);
     
     // Broadcast updated user count
@@ -210,59 +320,18 @@ io.on('connection', (socket) => {
     socket.currentChannel = 'global';
     socket.emit('recentMessages', channelMessages.global);
     
-        // Handle username registration with validation
-        socket.on('registerUser', (payload) => {
-            const rawName = typeof payload === 'string' ? payload : payload?.username;
-            const level = typeof payload === 'object' ? (payload.level || 'regular') : 'regular';
-            const coins = typeof payload === 'object' ? (payload.coins || 0) : 0;
-            const joinDate = typeof payload === 'object' ? (payload.joinDate || new Date().toISOString()) : new Date().toISOString();
-
-            // Basic validation rules
-            const trimmed = (rawName || '').trim();
-            const isValidLength = trimmed.length >= 3 && trimmed.length <= 20;
-            const isValidChars = /^[A-Za-z0-9_]+$/.test(trimmed);
-
-            if (!trimmed || !isValidLength || !isValidChars) {
-                socket.emit('registrationError', {
-                    error: 'Invalid username. Use 3-20 letters, numbers, or underscores.'
-                });
-                return;
-            }
-
-            // Prevent duplicates among currently connected users (case-insensitive)
-            const existing = Array.from(userProfiles.values()).find(u => u.username?.toLowerCase() === trimmed.toLowerCase());
-            if (existing) {
-                socket.emit('registrationError', {
-                    error: 'Username already in use. Please choose another.'
-                });
-                return;
-            }
-
-            // Persist user profile for this socket
-            userProfiles.set(socket.id, {
-                id: socket.id,
-                username: trimmed,
-                level,
-                coins,
-                joinedAt: joinDate
-            });
-
-            // Notify all users about the new/updated user
-            io.emit('userJoined', {
-                id: socket.id,
-                username: trimmed,
-                level,
-                coins
-            });
-            io.emit('userList', Array.from(userProfiles.values()));
-        });
-    
     // Handle new messages
     socket.on('sendMessage', (data) => {
+        // Require authenticated user for sending messages
+        const profile = userProfiles.get(socket.id);
+        if (!profile) {
+            socket.emit('authError', { error: 'Authentication required to send messages.' });
+            return;
+        }
         const channel = data.channel || 'global';
         const message = {
             id: Date.now(),
-            username: data.username,
+            username: profile.username,
             text: data.text,
             timestamp: new Date(),
             socketId: socket.id,
