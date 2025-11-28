@@ -103,7 +103,7 @@ socket.on('userJoined', (user) => {
         }
         hideAuthModal();
         clearAuthError();
-        if (loginBtn) loginBtn.innerHTML = '✏️ Change';
+        if (loginBtn) loginBtn.innerHTML = 'CHANGE';
         if (logoutBtn) logoutBtn.style.display = '';
     }
 });
@@ -215,7 +215,7 @@ function init() {
     
     // Header Login/Change Name button
     if (loginBtn) {
-        loginBtn.innerHTML = username ? '✏️ Change' : '🔓 Login';
+        loginBtn.innerHTML = username ? 'CHANGE' : 'LOGIN';
         loginBtn.addEventListener('click', () => {
             showAuthModal();
             const authUsername = document.getElementById('authUsername');
@@ -248,7 +248,7 @@ function init() {
             // Create a fresh unauthenticated socket connection
             window.socket = io(socketUrl);
             // Update header buttons
-            if (loginBtn) loginBtn.innerHTML = '🔓 Login';
+            if (loginBtn) loginBtn.innerHTML = 'LOGIN';
             logoutBtn.style.display = 'none';
             // Show auth modal for new login
             showAuthModal();
