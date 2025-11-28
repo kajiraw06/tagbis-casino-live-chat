@@ -522,30 +522,7 @@ body::before {
     height: 300%;
 }
 
-.tab-icon {
-    font-size: 18px;
-    margin-right: 8px;
-    display: inline-block;
-    transition: transform 0.3s ease;
-}
-
-.auth-tab.active .tab-icon {
-    animation: iconBounce 0.6s ease;
-}
-
-@keyframes iconBounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2) rotate(5deg); }
-}
-
-.tab-text {
-    display: inline-block;
-    position: relative;
-}
-
-.auth-tab:hover .tab-icon {
-    transform: scale(1.1);
-}
+/* Simplified auth tab content: plain text labels */
     height: 200%;
 }
 
