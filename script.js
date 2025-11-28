@@ -127,6 +127,9 @@ function init() {
     
     if (username) {
         usernameInput.value = username;
+    } else {
+        // Show auth modal if no username
+        showAuthModal();
     }
     
     // Update coin display
@@ -228,6 +231,41 @@ function init() {
     // File upload
     fileButton.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', handleFileUpload);
+
+    // Auth modal events
+    const authModal = document.getElementById('authModal');
+    const authSubmit = document.getElementById('authSubmit');
+    const authUsername = document.getElementById('authUsername');
+    const closeAuth = document.getElementById('closeAuth');
+    if (authModal && authSubmit && authUsername) {
+        authSubmit.addEventListener('click', () => {
+            const name = authUsername.value.trim();
+            if (!name) {
+                alert('Please enter a username');
+                authUsername.focus();
+                return;
+            }
+            username = name;
+            localStorage.setItem('chatUsername', username);
+            usernameInput.value = username;
+            // Initialize joinDate
+            if (!localStorage.getItem('joinDate')) {
+                localStorage.setItem('joinDate', new Date().toISOString());
+            }
+            // Register with server
+            socket.emit('registerUser', {
+                username: username,
+                level: userLevel,
+                coins: userCoins,
+                joinDate: localStorage.getItem('joinDate')
+            });
+            hideAuthModal();
+        });
+        closeAuth?.addEventListener('click', hideAuthModal);
+        authUsername.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') authSubmit.click();
+        });
+    }
 }
 
 function sendMessage() {
@@ -528,6 +566,23 @@ function toggleEmojiPicker() {
 
 function hideEmojiPicker() {
     emojiPicker.classList.add('hidden');
+}
+
+// Auth modal helpers
+function showAuthModal() {
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        const input = document.getElementById('authUsername');
+        setTimeout(() => input?.focus(), 100);
+    }
+}
+
+function hideAuthModal() {
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
 }
 
 // Reaction functions

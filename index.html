@@ -80,6 +80,25 @@
         <div class="chat-messages" id="chatMessages">
             <!-- Messages will appear here -->
         </div>
+
+        <!-- Auth Modal -->
+        <div id="authModal" class="auth-modal hidden">
+            <div class="auth-modal-content">
+                <div class="auth-header">
+                    <h3>Welcome to Live Chat</h3>
+                    <button id="closeAuth" class="auth-close">✕</button>
+                </div>
+                <div class="auth-body">
+                    <div class="auth-avatar-preview" id="authAvatarPreview">💬</div>
+                    <label class="auth-label" for="authUsername">Username</label>
+                    <input id="authUsername" class="auth-input" type="text" placeholder="Enter your username" maxlength="20" />
+                    <div class="auth-actions">
+                        <button id="authSubmit" class="auth-primary-btn">Enter Chat</button>
+                    </div>
+                    <p class="auth-hint">By entering, you agree to follow our community rules.</p>
+                </div>
+            </div>
+        </div>
         
         <div class="chat-input-container">
             <button id="fileButton" class="emoji-btn" title="Upload file">📎</button>
