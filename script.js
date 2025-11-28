@@ -1154,17 +1154,28 @@ function initSwipeGestures() {
             }
         }
 
-        // Reset transform
-        setTimeout(() => {
-            if (currentMessage) {
-                currentMessage.style.transform = '';
-                currentMessage.classList.remove('swipe-complete');
-                if (swipeIndicator) {
-                    swipeIndicator.classList.remove('visible');
-                }
+        // Reset transform immediately to prevent position issues
+        if (currentMessage) {
+            currentMessage.style.transform = '';
+            currentMessage.classList.remove('swipe-complete');
+            if (swipeIndicator) {
+                swipeIndicator.classList.remove('visible');
             }
-        }, 300);
+        }
 
+        currentMessage = null;
+        isHorizontalSwipe = false;
+    }, { passive: true });
+    
+    // Cancel swipe on touchcancel
+    chatMessages.addEventListener('touchcancel', () => {
+        if (currentMessage) {
+            currentMessage.style.transform = '';
+            currentMessage.classList.remove('swiping', 'swipe-complete');
+            if (swipeIndicator) {
+                swipeIndicator.classList.remove('visible');
+            }
+        }
         currentMessage = null;
         isHorizontalSwipe = false;
     }, { passive: true });
