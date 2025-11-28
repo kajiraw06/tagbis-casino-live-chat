@@ -532,18 +532,17 @@ body::before {
 }
 
 .auth-primary-btn {
-    background: linear-gradient(135deg, #00e701 0%, #00c853 100%);
-    color: #0f212e;
+    background: #00e701;
+    color: #0a1e2b;
     font-weight: 800;
     font-size: 15px;
     padding: 14px 32px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 4px 16px rgba(0, 231, 1, 0.4);
-    position: relative;
-    overflow: hidden;
+    border: none;
+    border-radius: 8px;
 }
 
 .auth-primary-btn::before {
@@ -564,13 +563,43 @@ body::before {
     box-shadow: 0 6px 24px rgba(0, 231, 1, 0.6);
 }
 
-.auth-primary-btn:hover::before {
-    width: 300%;
-    height: 300%;
+.auth-primary-btn:hover {
+    background: #00ff40;
+    transform: scale(1.02);
 }
 
 .auth-primary-btn:active {
-    transform: translateY(0);
+    transform: scale(0.98);
+}
+
+/* Bottom switch buttons under hint */
+.auth-switch-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.auth-switch-btn {
+    background: #00e701;
+    color: #0a1e2b;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.auth-switch-btn:hover {
+    background: #00ff40;
+    transform: scale(1.02);
+}
+
+.auth-switch-btn:active {
+    transform: scale(0.98);
 }
 
 .auth-hint {

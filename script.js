@@ -286,6 +286,8 @@ function init() {
     const tabRegister = document.getElementById('tabRegister');
     const authTitle = document.getElementById('authTitle');
     const authHint = document.getElementById('authHint');
+    const switchToLogin = document.getElementById('switchToLogin');
+    const switchToRegister = document.getElementById('switchToRegister');
     let authMode = 'login';
 
     function setAuthMode(mode) {
@@ -294,13 +296,17 @@ function init() {
         tabRegister.classList.toggle('active', mode === 'register');
         authSubmit.textContent = mode === 'login' ? 'Login' : 'Create Account';
         authTitle.textContent = mode === 'login' ? 'Login to Chat' : 'Create Account';
-        authHint.textContent = mode === 'login' ? 'New here? Switch to Register to create an account.' : 'Already have an account? Switch to Login.';
+        authHint.textContent = mode === 'login' ? 'New here? Create an account below.' : 'Already have an account? Login below.';
+        if (switchToLogin) switchToLogin.style.display = mode === 'register' ? '' : 'none';
+        if (switchToRegister) switchToRegister.style.display = mode === 'login' ? '' : 'none';
         clearAuthError();
         authPassword.value = '';
     }
 
     tabLogin?.addEventListener('click', () => setAuthMode('login'));
     tabRegister?.addEventListener('click', () => setAuthMode('register'));
+    switchToLogin?.addEventListener('click', () => setAuthMode('login'));
+    switchToRegister?.addEventListener('click', () => setAuthMode('register'));
 
     if (authModal && authSubmit && authUsername && authPassword) {
         authSubmit.addEventListener('click', async () => {
