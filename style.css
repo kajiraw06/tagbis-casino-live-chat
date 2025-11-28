@@ -399,6 +399,33 @@ body::before {
 .channel-btn.active {
     color: #00e701;
     background: rgba(0, 231, 1, 0.1);
+
+/* Login button in header */
+.login-btn {
+    background: #2f4553;
+    color: #ffffff;
+    border: 1px solid #3b5564;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.login-btn:hover {
+    background: #3a5666;
+    transform: translateY(-1px);
+}
+
+/* Auth modal inline error */
+.auth-error {
+    display: none;
+    color: #ff4d4f;
+    font-size: 12px;
+    margin-top: 6px;
+    min-height: 16px;
+}
     border-bottom: 2px solid #00e701;
 }
 

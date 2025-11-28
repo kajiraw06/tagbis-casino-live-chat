@@ -43,6 +43,7 @@ const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 const userList = document.getElementById('userList');
 const fileButton = document.getElementById('fileButton');
 const fileInput = document.getElementById('fileInput');
+const loginBtn = document.getElementById('loginBtn');
 
 // Socket.io event listeners
 socket.on('connect', () => {
@@ -104,6 +105,7 @@ socket.on('userJoined', (user) => {
         }
         hideAuthModal();
         clearAuthError();
+        if (loginBtn) loginBtn.textContent = 'Change Name';
     }
 });
 
@@ -221,6 +223,17 @@ function init() {
     if (darkMode) {
         document.body.classList.add('dark-mode');
         themeToggle.textContent = '☀️';
+    }
+    
+    // Header Login/Change Name button
+    if (loginBtn) {
+        loginBtn.textContent = username ? 'Change Name' : 'Login';
+        loginBtn.addEventListener('click', () => {
+            showAuthModal();
+            const authUsername = document.getElementById('authUsername');
+            if (authUsername) authUsername.value = username || '';
+            clearAuthError();
+        });
     }
     
     // User sidebar
