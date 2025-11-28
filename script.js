@@ -94,6 +94,17 @@ socket.on('userJoined', (user) => {
         onlineUsers.push(user);
         updateUserList();
     }
+    // If current socket successfully registered, finalize login and close modal
+    if (user.id === socket.id && user.username) {
+        username = user.username;
+        localStorage.setItem('chatUsername', username);
+        usernameInput.value = username;
+        if (!localStorage.getItem('joinDate')) {
+            localStorage.setItem('joinDate', new Date().toISOString());
+        }
+        hideAuthModal();
+        clearAuthError();
+    }
 });
 
 socket.on('userLeft', (userId) => {
@@ -237,29 +248,25 @@ function init() {
     const authSubmit = document.getElementById('authSubmit');
     const authUsername = document.getElementById('authUsername');
     const closeAuth = document.getElementById('closeAuth');
+    const authError = document.getElementById('authError');
     if (authModal && authSubmit && authUsername) {
         authSubmit.addEventListener('click', () => {
             const name = authUsername.value.trim();
-            if (!name) {
-                alert('Please enter a username');
+            // Client-side validation mirroring server rules
+            const isValidLength = name.length >= 3 && name.length <= 20;
+            const isValidChars = /^[A-Za-z0-9_]+$/.test(name);
+            if (!name || !isValidLength || !isValidChars) {
+                showAuthError('Use 3-20 letters, numbers, or underscores.');
                 authUsername.focus();
                 return;
             }
-            username = name;
-            localStorage.setItem('chatUsername', username);
-            usernameInput.value = username;
-            // Initialize joinDate
-            if (!localStorage.getItem('joinDate')) {
-                localStorage.setItem('joinDate', new Date().toISOString());
-            }
-            // Register with server
+            // Emit registration; wait for server acceptance before persisting and closing
             socket.emit('registerUser', {
-                username: username,
+                username: name,
                 level: userLevel,
                 coins: userCoins,
-                joinDate: localStorage.getItem('joinDate')
+                joinDate: localStorage.getItem('joinDate') || new Date().toISOString()
             });
-            hideAuthModal();
         });
         closeAuth?.addEventListener('click', hideAuthModal);
         authUsername.addEventListener('keypress', (e) => {
@@ -582,6 +589,25 @@ function hideAuthModal() {
     const modal = document.getElementById('authModal');
     if (modal) {
         modal.classList.add('hidden');
+    }
+}
+
+// Auth error helpers
+function showAuthError(text) {
+    const el = document.getElementById('authError');
+    if (el) {
+        el.textContent = text;
+        el.style.display = 'block';
+    } else {
+        alert(text);
+    }
+}
+
+function clearAuthError() {
+    const el = document.getElementById('authError');
+    if (el) {
+        el.textContent = '';
+        el.style.display = 'none';
     }
 }
 
@@ -1020,6 +1046,11 @@ socket.on('reactionUpdated', (data) => {
             }
         });
     }
+});
+
+// Show registration errors inline in the auth modal
+socket.on('registrationError', (data) => {
+    showAuthError(data?.error || 'Registration failed. Please try another username.');
 });
 
 // Initialize the app
