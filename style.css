@@ -924,9 +924,16 @@ body::before {
 
 /* Show actions on hover for desktop without reserving space */
 @media (min-width: 769px) {
+    /* On desktop remove reserved space when hidden */
+    .message-actions {
+        display: none !important;
+        margin-top: 0;
+    }
     .message:hover .message-actions {
+        display: flex !important;
         opacity: 1;
         visibility: visible;
+        margin-top: 6px;
     }
 }
 
